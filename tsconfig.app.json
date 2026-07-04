@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "target": "es2023",
+    "lib": ["ES2023", "DOM"],
+    "module": "esnext",
+    "types": ["vite/client"],
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    /* Path alias */
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+
+    /* Linting */
+    // "noUnusedLocals": true,     // 리팩토링 시 활성화
+    // "noUnusedParameters": true, // 리팩토링 시 활성화
+    // "erasableSyntaxOnly": true, // 리팩토링 시 활성화
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["src"]
+}
