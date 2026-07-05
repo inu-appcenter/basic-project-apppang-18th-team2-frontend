@@ -1,12 +1,6 @@
-import { ChevronRight, Heart, Settings, ShoppingBag, ShoppingCart, User } from 'lucide-react'
+import { ChevronRight, Heart, LogIn, Settings, ShoppingBag, ShoppingCart, User } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-
-const user = {
-  name: '주민서',
-  email: 'minseo@shop.com',
-  orderCount: 12,
-  wishCount: 4,
-}
+import { useAuthStore } from '@/store/authStore'
 
 const recentOrders = [
   { id: 1, productId: 101, status: '배송 완료' },
@@ -33,6 +27,26 @@ function maskEmail(email: string) {
 
 function MyPage() {
   const navigate = useNavigate()
+  const user = useAuthStore((state) => state.user)
+  const logout = useAuthStore((state) => state.logout)
+
+  // 로그인 안 한 상태
+  if (!user) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-4 py-32">
+        <User size={48} className="text-gray-200" />
+        <p className="text-body-6 text-gray-300">로그인이 필요합니다</p>
+        <button
+          type="button"
+          onClick={() => navigate('/login')}
+          className="bg-primary-200 text-body-5 flex items-center gap-2 rounded-lg px-6 py-3 text-white"
+        >
+          <LogIn size={18} />
+          로그인하러 가기
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div className="bg-white">
@@ -52,12 +66,12 @@ function MyPage() {
       <div className="grid grid-cols-2 gap-3 px-4">
         <button type="button" onClick={() => navigate('/orders')} className="flex flex-col items-center gap-1 rounded-xl bg-gray-100 py-4">
           <ShoppingBag size={20} className="text-primary-200" />
-          <span className="text-title-5 text-black">{user.orderCount}</span>
+          <span className="text-title-5 text-black">12</span>
           <span className="text-body-9 text-gray-300">주문 내역</span>
         </button>
         <button type="button" onClick={() => navigate('/wishlist')} className="flex flex-col items-center gap-1 rounded-xl bg-gray-100 py-4">
           <Heart size={20} className="text-primary-200" />
-          <span className="text-title-5 text-black">{user.wishCount}</span>
+          <span className="text-title-5 text-black">4</span>
           <span className="text-body-9 text-gray-300">찜 리스트</span>
         </button>
       </div>
@@ -94,7 +108,7 @@ function MyPage() {
 
       <div className="my-5 h-2 bg-gray-100" />
 
-      <nav className="px-4 pb-6">
+      <nav className="px-4">
         <button type="button" onClick={() => navigate('/mypage/settings')} className="flex w-full items-center justify-between border-b border-gray-100 py-4 text-black">
           <span className="text-body-7">계정 설정</span>
           <ChevronRight size={18} className="text-gray-200" />
@@ -106,6 +120,19 @@ function MyPage() {
           </button>
         ))}
       </nav>
+
+      <div className="px-4 py-6">
+        <button
+          type="button"
+          onClick={() => {
+            logout()
+            navigate('/login')
+          }}
+          className="text-body-9 text-gray-300"
+        >
+          로그아웃
+        </button>
+      </div>
     </div>
   )
 }

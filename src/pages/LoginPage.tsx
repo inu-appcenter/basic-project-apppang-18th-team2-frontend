@@ -1,9 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuthStore } from '@/store/authStore'
 
+// 백엔드 연동 전 목 계정
+const MOCK_ACCOUNT = { email: 'test@test.com', password: '1234', name: '주민서' }
 
 function LoginPage() {
   const navigate = useNavigate()
+  const login = useAuthStore((state) => state.login)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -11,10 +15,17 @@ function LoginPage() {
 
   const isActive = email.length > 0 && password.length > 0
 
+  const handleLogin = () => {
+    if (email === MOCK_ACCOUNT.email && password === MOCK_ACCOUNT.password) {
+      login({ name: MOCK_ACCOUNT.name, email: MOCK_ACCOUNT.email })
+      navigate('/')
+    } else {
+      setLoginError(true)
+    }
+  }
+
   return (
     <div className="relative flex flex-col items-center gap-3 px-3 min-h-screen bg-white w-full">
-
-      {/* Header */}
       <header className="flex justify-end items-center w-full py-5">
         <button type="button" onClick={() => navigate(-1)} className="p-1">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7E7E7E" strokeWidth="2" strokeLinecap="round">
@@ -23,12 +34,11 @@ function LoginPage() {
         </button>
       </header>
 
-      {/* Logo */}
       <div className="flex justify-center items-center w-full py-3">
         <img src="/apppang-logo.png" alt="앱팡" className="h-[29.51px]" />
       </div>
 
-      {/* Email Field */}
+      {/* 이메일 */}
       <div className="flex items-center w-full border border-gray-300 px-3 py-3 gap-2">
         <input
           type="email"
@@ -38,11 +48,7 @@ function LoginPage() {
           className="text-body-1 flex-1 outline-none placeholder:text-gray-300"
         />
         {email && (
-          <button
-            type="button"
-            onClick={() => setEmail('')}
-            className="flex items-center justify-center w-5 h-5 bg-gray-300 rounded-full shrink-0"
-          >
+          <button type="button" onClick={() => setEmail('')} className="flex items-center justify-center w-5 h-5 bg-gray-300 rounded-full shrink-0">
             <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round">
               <path d="M2 2l6 6M8 2L2 8" />
             </svg>
@@ -50,7 +56,7 @@ function LoginPage() {
         )}
       </div>
 
-      {/* Password Field */}
+      {/* 비밀번호 */}
       <div className="flex items-center w-full border border-gray-300 px-3 py-3 gap-2">
         <input
           type={showPassword ? 'text' : 'password'}
@@ -59,11 +65,7 @@ function LoginPage() {
           placeholder="비밀번호"
           className="text-body-1 flex-1 outline-none placeholder:text-gray-300"
         />
-        <button
-          type="button"
-          onClick={() => setShowPassword((prev) => !prev)}
-          className="shrink-0"
-        >
+        <button type="button" onClick={() => setShowPassword((prev) => !prev)} className="shrink-0">
           {showPassword ? (
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7E7E7E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94" />
@@ -79,11 +81,11 @@ function LoginPage() {
         </button>
       </div>
 
-      {/* Login Button */}
+      {/* 로그인 */}
       <button
         type="button"
         disabled={!isActive}
-        onClick={() => setLoginError(true)}
+        onClick={handleLogin}
         className={`flex justify-center items-center w-full py-3 text-base font-bold text-white transition-colors ${
           isActive ? 'bg-primary-200' : 'bg-gray-200'
         }`}
@@ -91,9 +93,9 @@ function LoginPage() {
         로그인
       </button>
 
-      {/* Find Account */}
+      {/* 아이디/비밀번호 찾기 */}
       <div className="flex justify-end w-full">
-        <button type="button" className="flex items-center gap-1 text-xs font-semibold text-primary-200">
+        <button type="button" onClick={() => navigate('/find-account')} className="flex items-center gap-1 text-xs font-semibold text-primary-200">
           아이디·비밀번호 찾기
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#346AFF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M4.5 3L7.5 6l-3 3" />
@@ -101,22 +103,15 @@ function LoginPage() {
         </button>
       </div>
 
-      {/* Divider */}
       <div className="w-full h-px bg-gray-200" />
 
-      {/* Register Button */}
-      <button
-        type="button"
-        onClick={() => navigate('/register')}
-        className="flex justify-center items-center w-full py-3 border border-gray-200 text-base font-bold text-primary-200"
-      >
+      <button type="button" onClick={() => navigate('/register')} className="flex justify-center items-center w-full py-3 border border-gray-200 text-base font-bold text-primary-200">
         회원가입
       </button>
 
-      {/* Business Row */}
       <div className="flex justify-center items-center gap-1 w-full">
         <span className="text-xs font-semibold text-black">사업자이신가요?</span>
-        <button type="button" className="flex items-center gap-1 text-xs font-semibold text-primary-200">
+        <button type="button" onClick={() => navigate('/seller/register')} className="flex items-center gap-1 text-xs font-semibold text-primary-200">
           사업자 회원 가입하기
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#346AFF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M4.5 3L7.5 6l-3 3" />
@@ -124,14 +119,10 @@ function LoginPage() {
         </button>
       </div>
 
-      {/* Toast - 로그인 실패 */}
+      {/* 로그인 실패 토스트 */}
       {loginError && (
         <div className="absolute top-[57px] left-[95px] flex items-center gap-2 px-3 py-2 bg-white rounded shadow-[4px_4px_12px_0px_rgba(0,0,0,0.25)] w-[200px]">
-          <button
-            type="button"
-            onClick={() => setLoginError(false)}
-            className="shrink-0"
-          >
+          <button type="button" onClick={() => setLoginError(false)} className="shrink-0">
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#7E7E7E" strokeWidth="2" strokeLinecap="round">
               <path d="M2 2l8 8M10 2L2 10" />
             </svg>
@@ -141,7 +132,6 @@ function LoginPage() {
           </p>
         </div>
       )}
-
     </div>
   )
 }
