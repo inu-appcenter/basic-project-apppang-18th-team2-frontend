@@ -1,21 +1,10 @@
 import { Heart } from 'lucide-react'
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-
-const initialItems = [
-  { id: 1, name: '남성 경량 구스다운 패딩 점퍼', price: 61000, originPrice: 89000, rating: 4.8, reviews: 2104 },
-  { id: 2, name: '오버핏 울 코트', price: 92800, originPrice: 129000, rating: 4.7, reviews: 1028 },
-  { id: 3, name: '베이직 니트 스웨터', price: 34900, rating: 4.8, reviews: 2560 },
-  { id: 4, name: '레더 첼시 부츠', price: 79000, rating: 4.6, reviews: 774 },
-]
+import { useWishlistStore } from '@/store/wishlistStore'
 
 function WishlistPage() {
   const navigate = useNavigate()
-  const [items, setItems] = useState(initialItems)
-
-  const removeItem = (id: number) => {
-    setItems(items.filter((item) => item.id !== id))
-  }
+  const { items, remove } = useWishlistStore()
 
   if (items.length === 0) {
     return (
@@ -56,7 +45,7 @@ function WishlistPage() {
                 ★ {item.rating} <span className="text-gray-300">({item.reviews.toLocaleString()})</span>
               </p>
             </div>
-            <button type="button" onClick={() => removeItem(item.id)} aria-label="찜 해제" className="self-start p-1 text-black">
+            <button type="button" onClick={() => remove(item.id)} aria-label="찜 해제" className="self-start p-1 text-black">
               <Heart size={22} fill="currentColor" />
             </button>
           </li>
