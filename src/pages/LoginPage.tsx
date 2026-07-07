@@ -17,7 +17,7 @@ function LoginPage() {
 
   const handleLogin = () => {
     if (email === MOCK_ACCOUNT.email && password === MOCK_ACCOUNT.password) {
-      login({ name: MOCK_ACCOUNT.name, email: MOCK_ACCOUNT.email })
+      login({ userId: 1, email: MOCK_ACCOUNT.email, name: MOCK_ACCOUNT.name })
       navigate('/')
     } else {
       setLoginError(true)

@@ -1,10 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-
-export type User = {
-  name: string
-  email: string
-}
+import type { User } from '@/types/api'
 
 type AuthState = {
   user: User | null
