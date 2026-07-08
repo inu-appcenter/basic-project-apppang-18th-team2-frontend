@@ -1,4 +1,4 @@
-import { Camera, ChevronLeft, ChevronRight, User } from 'lucide-react'
+import { Camera, ChevronLeft, User } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 const user = {
@@ -7,12 +7,6 @@ const user = {
   phone: '01012345678',
   birth: '2000.05.26',
 }
-
-const menus = [
-  { label: '회원정보 수정', path: '/mypage/settings/edit' },
-  { label: '주소록 관리', path: '/mypage/addresses' },
-  { label: '알림 설정', path: '/mypage/notifications' },
-]
 
 function maskName(name: string) {
   if (name.length <= 2) return name[0] + '*'
@@ -75,15 +69,6 @@ function AccountSettingsPage() {
         </section>
 
         <div className="h-2 bg-gray-100" />
-
-        <nav className="px-4 py-2">
-          {menus.map((menu) => (
-            <button key={menu.path} type="button" onClick={() => navigate(menu.path)} className="flex w-full items-center justify-between border-b border-gray-100 py-4 text-black">
-              <span className="text-body-7">{menu.label}</span>
-              <ChevronRight size={18} className="text-gray-200" />
-            </button>
-          ))}
-        </nav>
 
         <div className="mt-auto flex items-center justify-between px-4 py-6">
           <button type="button" className="text-body-9 text-gray-300">로그아웃</button>

@@ -9,12 +9,6 @@ const recentOrders = [
   { id: 4, productId: 104, status: '결제 완료' },
 ]
 
-const menus = [
-  { label: '배송지 관리', path: '/mypage/addresses' },
-  { label: '리뷰 관리', path: '/mypage/reviews' },
-  { label: '고객센터', path: '/mypage/support' },
-]
-
 function maskName(name: string) {
   if (name.length <= 2) return name[0] + '*'
   return name[0] + '*'.repeat(name.length - 2) + name[name.length - 1]
@@ -113,12 +107,6 @@ function MyPage() {
           <span className="text-body-7">계정 설정</span>
           <ChevronRight size={18} className="text-gray-200" />
         </button>
-        {menus.map((menu) => (
-          <button key={menu.path} type="button" onClick={() => navigate(menu.path)} className="flex w-full items-center justify-between border-b border-gray-100 py-4 text-black">
-            <span className="text-body-7">{menu.label}</span>
-            <ChevronRight size={18} className="text-gray-200" />
-          </button>
-        ))}
       </nav>
 
       <div className="px-4 py-6">
