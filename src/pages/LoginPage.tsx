@@ -109,10 +109,14 @@ function LoginPage() {
         회원가입
       </button>
 
-      <div className="flex justify-center items-center gap-1 w-full">
+      <div className="flex justify-center items-center gap-1.5 w-full">
         <span className="text-xs font-semibold text-black">사업자이신가요?</span>
+        <button type="button" onClick={() => navigate('/seller/login')} className="text-xs font-semibold text-primary-200">
+          판매자 로그인
+        </button>
+        <span className="text-xs font-semibold text-gray-300">·</span>
         <button type="button" onClick={() => navigate('/seller/register')} className="flex items-center gap-1 text-xs font-semibold text-primary-200">
-          사업자 회원 가입하기
+          회원가입하기
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#346AFF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M4.5 3L7.5 6l-3 3" />
           </svg>

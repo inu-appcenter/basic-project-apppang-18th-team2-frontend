@@ -1,6 +1,8 @@
-import { ChevronLeft, Plus } from 'lucide-react'
-import { useState } from 'react'
+import { ChevronLeft, Plus, X } from 'lucide-react'
+import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+
+const MAX_IMAGES = 10
 
 function ProductRegisterPage() {
   const navigate = useNavigate()
@@ -10,8 +12,25 @@ function ProductRegisterPage() {
   const [price, setPrice] = useState('')
   const [description, setDescription] = useState('')
   const [shipping, setShipping] = useState('택배')
+  const [images, setImages] = useState<string[]>([])
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const canSubmit = category && name && stock && price && description
+  const canSubmit = category && name && stock && price && description && images.length > 0
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { files } = e.target
+    if (!files) return
+    const selected = Array.from(files).slice(0, MAX_IMAGES - images.length)
+    setImages((prev) => [...prev, ...selected.map((file) => URL.createObjectURL(file))])
+    e.target.value = ''
+  }
+
+  const removeImage = (index: number) => {
+    setImages((prev) => {
+      URL.revokeObjectURL(prev[index])
+      return prev.filter((_, i) => i !== index)
+    })
+  }
 
   return (
     <div className="flex min-h-screen justify-center bg-white">
@@ -84,13 +103,32 @@ function ProductRegisterPage() {
 
           <div className="flex flex-col gap-1.5">
             <label className="text-body-9 text-gray-300">상품 이미지 *</label>
-            <div className="flex gap-2">
-              <button type="button" className="flex h-20 w-20 flex-col items-center justify-center gap-1 border border-dashed border-gray-300">
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={images.length >= MAX_IMAGES}
+                className="flex h-20 w-20 shrink-0 flex-col items-center justify-center gap-1 border border-dashed border-gray-300 disabled:opacity-40"
+              >
                 <Plus size={22} className="text-gray-300" />
-                <span className="text-body-11 text-gray-300">0/10</span>
+                <span className="text-body-11 text-gray-300">
+                  {images.length}/{MAX_IMAGES}
+                </span>
               </button>
-              <div className="h-20 w-20 bg-gray-100" />
-              <div className="h-20 w-20 bg-gray-100" />
+              <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleFileChange} className="hidden" />
+              {images.map((src, i) => (
+                <div key={src} className="relative h-20 w-20 shrink-0">
+                  <img src={src} alt={`상품 이미지 ${i + 1}`} className="h-full w-full rounded object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => removeImage(i)}
+                    aria-label="이미지 삭제"
+                    className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-black/70 text-white"
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              ))}
             </div>
           </div>
 
