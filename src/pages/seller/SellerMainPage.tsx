@@ -34,7 +34,11 @@ function SellerMainPage() {
           <div className="flex items-center justify-between">
             {deliveryStatus.map((item, i) => (
               <div key={item.label} className="flex items-center">
-                <button type="button" onClick={() => navigate('/seller/products')} className="flex flex-col items-center gap-1 px-1">
+                <button
+                  type="button"
+                  onClick={() => navigate(`/seller/orders?status=${encodeURIComponent(item.label)}`)}
+                  className="flex flex-col items-center gap-1 px-1"
+                >
                   <span className="text-title-4 text-black">{item.count}</span>
                   <span className="text-body-11 text-gray-300">{item.label}</span>
                 </button>

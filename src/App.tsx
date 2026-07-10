@@ -25,6 +25,7 @@ import ProductManagePage from '@/pages/seller/ProductManagePage'
 import ProductRegisterPage from '@/pages/seller/ProductRegisterPage'
 import SellerLoginPage from '@/pages/seller/SellerLoginPage'
 import SellerMainPage from '@/pages/seller/SellerMainPage'
+import SellerOrderPage from '@/pages/seller/SellerOrderPage'
 import SellerRegisterPage from '@/pages/seller/SellerRegisterPage'
 import SplashPage from '@/pages/SplashPage'
 import WishlistPage from '@/pages/WishlistPage'
@@ -65,6 +66,7 @@ function App() {
         <Route path="/seller" element={<SellerMainPage />} />
         <Route path="/seller/products/new" element={<ProductRegisterPage />} />
         <Route path="/seller/products" element={<ProductManagePage />} />
+        <Route path="/seller/orders" element={<SellerOrderPage />} />
 
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
