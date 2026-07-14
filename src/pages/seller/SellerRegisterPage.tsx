@@ -1,6 +1,7 @@
 import { ChevronLeft } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuthStore } from '@/store/authStore'
 
 const fields = [
   { key: 'email', label: '이메일', placeholder: 'seller@shop.com', type: 'email' },
@@ -13,6 +14,7 @@ const fields = [
 
 function SellerRegisterPage() {
   const navigate = useNavigate()
+  const login = useAuthStore((state) => state.login)
   const [form, setForm] = useState<Record<string, string>>({})
   const [agreed, setAgreed] = useState(false)
 
@@ -22,6 +24,12 @@ function SellerRegisterPage() {
 
   const allFilled = fields.every((f) => form[f.key])
   const canSubmit = allFilled && agreed
+
+  const handleSubmit = () => {
+    // 판매자 가입도 회원(구매자) 세션을 같이 열어줘야 판매자 센터에서 쇼핑몰 홈으로 나가도 로그인 상태가 유지된다
+    login({ userId: 1, email: form.email, name: form.name })
+    navigate('/seller')
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-white">
@@ -57,7 +65,7 @@ function SellerRegisterPage() {
         <button
           type="button"
           disabled={!canSubmit}
-          onClick={() => navigate('/seller')}
+          onClick={handleSubmit}
           className={`text-body-5 mt-2 py-3.5 text-white ${canSubmit ? 'bg-primary-200' : 'bg-gray-200'}`}
         >
           동의하고 가입하기

@@ -1,9 +1,8 @@
+import axios from 'axios'
 import { Check, ChevronLeft, Eye, EyeOff } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-
-// 이미 가입된 이메일 (중복 체크용 목데이터)
-const takenEmails = ['test@test.com', 'admin@shop.com']
+import { signup } from '@/api/auth'
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).{8,20}$/
@@ -47,7 +46,6 @@ function RegisterPage() {
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [emailChecked, setEmailChecked] = useState(false)
   const [agree, setAgree] = useState<Record<string, boolean>>({})
   const [openTerms, setOpenTerms] = useState<Record<string, boolean>>({})
   const [errors, setErrors] = useState<Errors>({})
@@ -77,27 +75,13 @@ function RegisterPage() {
     setError('terms', undefined)
   }
 
-  const checkEmail = () => {
-    if (!email) {
-      setError('email', '이메일을 입력하세요.')
-      return
-    }
-    if (!emailRegex.test(email)) {
-      setError('email', '올바른 이메일 형식을 입력해주세요.')
-      return
-    }
-    if (takenEmails.includes(email)) {
-      setError('email', '이미 사용중인 이메일입니다.')
-      setEmailChecked(false)
-      return
-    }
-    setError('email', undefined)
-    setEmailChecked(true)
-  }
-
   // 포커스가 빠질 때 해당 항목만 바로 검증
   const validateField = (key: keyof Errors) => {
     switch (key) {
+      case 'email':
+        if (!email) setError('email', '이메일을 입력하세요.')
+        else setError('email', emailRegex.test(email) ? undefined : '올바른 이메일 형식을 입력해주세요.')
+        break
       case 'password':
         if (!password) setError('password', '비밀번호를 입력하세요.')
         else setError('password', passwordRegex.test(password) ? undefined : '영문+숫자의 형식(8~20자)')
@@ -116,12 +100,10 @@ function RegisterPage() {
     }
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const next: Errors = {}
     if (!email) next.email = '이메일을 입력하세요.'
     else if (!emailRegex.test(email)) next.email = '올바른 이메일 형식을 입력해주세요.'
-    else if (takenEmails.includes(email)) next.email = '이미 사용중인 이메일입니다.'
-    else if (!emailChecked) next.email = '이메일 중복확인을 해주세요.'
 
     if (!password) next.password = '비밀번호를 입력하세요.'
     else if (!passwordRegex.test(password)) next.password = '영문+숫자의 형식(8~20자)'
@@ -132,9 +114,22 @@ function RegisterPage() {
     if (!requiredAgreed) next.terms = '필수 항목에 모두 동의해주세요'
 
     setErrors(next)
-    if (Object.keys(next).length === 0) {
-      // 성공 시: POST /api/auth/signup
+    if (Object.keys(next).length > 0) return
+
+    try {
+      await signup({
+        email,
+        password,
+        name,
+        phone,
+        agreeRequiredTerms: Boolean(agree.terms && agree.privacy),
+        agreeMarketing: Boolean(agree.marketing),
+      })
       setSubmitted(true)
+    } catch (error) {
+      // 이메일 중복 등 서버 쪽 검증 실패 메시지를 그대로 표시
+      const message = axios.isAxiosError(error) ? error.response?.data?.message : undefined
+      setError('email', message ?? '회원가입에 실패했습니다. 잠시 후 다시 시도해주세요.')
     }
   }
 
@@ -163,26 +158,18 @@ function RegisterPage() {
       </header>
 
       <div className="flex flex-col gap-4 px-4 py-4">
-        {/* 이메일 + 중복확인 */}
+        {/* 이메일 */}
         <div className="flex flex-col gap-1.5">
           <label className="text-body-9 text-gray-300">이메일</label>
-          <div className="flex gap-2">
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value)
-                setEmailChecked(false)
-              }}
-              placeholder="이메일을 입력하세요"
-              className="text-body-6 flex-1 border border-gray-300 px-3 py-3 outline-none placeholder:text-gray-300"
-            />
-            <button type="button" onClick={checkEmail} className="text-body-7 shrink-0 border border-gray-300 px-3 text-gray-300">
-              중복확인
-            </button>
-          </div>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            onBlur={() => validateField('email')}
+            placeholder="이메일을 입력하세요"
+            className={`text-body-6 border px-3 py-3 outline-none placeholder:text-gray-300 ${errors.email ? 'border-red-300' : 'border-gray-300'}`}
+          />
           {errors.email && <p className="text-body-10 text-red-300">{errors.email}</p>}
-          {emailChecked && !errors.email && <p className="text-body-10 text-primary-200">사용 가능한 이메일입니다.</p>}
         </div>
 
         {/* 비밀번호 */}

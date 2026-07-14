@@ -1,9 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { login as loginRequest } from '@/api/auth'
 import { useAuthStore } from '@/store/authStore'
-
-// 백엔드 연동 전 목 계정
-const MOCK_ACCOUNT = { email: 'test@test.com', password: '1234', name: '주민서' }
 
 function LoginPage() {
   const navigate = useNavigate()
@@ -15,11 +13,14 @@ function LoginPage() {
 
   const isActive = email.length > 0 && password.length > 0
 
-  const handleLogin = () => {
-    if (email === MOCK_ACCOUNT.email && password === MOCK_ACCOUNT.password) {
-      login({ userId: 1, email: MOCK_ACCOUNT.email, name: MOCK_ACCOUNT.name })
+  const handleLogin = async () => {
+    try {
+      const { data } = await loginRequest(email, password)
+      localStorage.setItem('accessToken', data.accessToken)
+      // 백엔드 로그인 응답에 아직 사용자 정보가 없어 입력값으로 임시 구성 (TODO: 응답에 user 추가되면 교체)
+      login({ userId: 1, email, name: email.split('@')[0] })
       navigate('/')
-    } else {
+    } catch {
       setLoginError(true)
     }
   }

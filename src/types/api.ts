@@ -14,10 +14,10 @@ export type User = {
   profileImage?: string
 }
 
+// refreshToken은 응답 바디가 아니라 httpOnly 쿠키로 내려온다.
+// 백엔드가 아직 로그인 응답에 user 정보를 포함하지 않아 accessToken만 온다 (2026-07-10 기준 develop 브랜치)
 export type LoginResponse = {
   accessToken: string
-  refreshToken: string
-  user: Pick<User, 'userId' | 'name'>
 }
 
 export type SignupRequest = {

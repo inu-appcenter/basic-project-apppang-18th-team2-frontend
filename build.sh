@@ -1,4 +1,4 @@
 cd ../
 mkdir output
-cp -R ./team-repository-name/* ./output
-cp -R ./output ./team-repository-name/ 
+cp -R ./basic-project-apppang-18th-team2-frontend/* ./output
+cp -R ./output ./asic-project-apppang-18th-team2-frontend/ 

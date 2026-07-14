@@ -1,12 +1,9 @@
-import { ChevronRight, PackagePlus, RotateCw, Settings2 } from 'lucide-react'
+import { ChevronRight, Home, ListOrdered, LogOut, PackagePlus, RotateCw, Settings2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { useAuthStore } from '@/store/authStore'
+import { type OrderStatus, useSellerOrderStore } from '@/store/sellerOrderStore'
 
-const deliveryStatus = [
-  { label: '결제완료', count: 3 },
-  { label: '상품준비', count: 5 },
-  { label: '배송지시', count: 2 },
-  { label: '배송중', count: 8 },
-]
+const DELIVERY_LABELS: OrderStatus[] = ['결제완료', '상품준비', '배송지시', '배송중']
 
 const claimStatus = [
   { label: '취소', count: 1 },
@@ -16,20 +13,41 @@ const claimStatus = [
 
 function SellerMainPage() {
   const navigate = useNavigate()
+  const logout = useAuthStore((state) => state.logout)
+  const orders = useSellerOrderStore((state) => state.orders)
+  const deliveryStatus = DELIVERY_LABELS.map((label) => ({ label, count: orders.filter((order) => order.status === label).length }))
+
+  const handleLogout = () => {
+    logout()
+    navigate('/seller/login')
+  }
 
   return (
     <div className="flex min-h-screen justify-center bg-white">
       <div className="flex w-full max-w-120 flex-col bg-white">
-        <header className="flex h-14 items-center border-b border-gray-100 px-4">
+        <header className="flex h-14 items-center justify-between border-b border-gray-100 px-4">
           <h1 className="text-title-5 text-black">판매자 센터</h1>
+          <div className="flex items-center gap-4">
+            <button type="button" onClick={() => navigate('/')} aria-label="쇼핑몰 홈으로" className="text-gray-300">
+              <Home size={20} />
+            </button>
+            <button type="button" onClick={handleLogout} aria-label="로그아웃" className="text-gray-300">
+              <LogOut size={20} />
+            </button>
+          </div>
         </header>
 
         <section className="m-4 rounded-2xl border border-gray-100 p-4">
           <div className="mb-3 flex items-center justify-between border-b border-gray-100 pb-3">
             <h2 className="text-body-5 text-black">판매/배송</h2>
-            <button type="button" aria-label="새로고침" className="text-gray-300">
-              <RotateCw size={18} />
-            </button>
+            <div className="flex items-center gap-3">
+              <button type="button" onClick={() => navigate('/seller/orders')} aria-label="전체 주문 보기" className="text-gray-300">
+                <ListOrdered size={18} />
+              </button>
+              <button type="button" aria-label="새로고침" className="text-gray-300">
+                <RotateCw size={18} />
+              </button>
+            </div>
           </div>
           <div className="flex items-center justify-between">
             {deliveryStatus.map((item, i) => (

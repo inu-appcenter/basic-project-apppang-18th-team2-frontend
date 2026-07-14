@@ -1,18 +1,30 @@
-import { Eye, EyeOff, X } from 'lucide-react'
+import { ChevronLeft, Eye, EyeOff, X } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuthStore } from '@/store/authStore'
 
 function SellerLoginPage() {
   const navigate = useNavigate()
+  const login = useAuthStore((state) => state.login)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
 
   const canLogin = email.length > 0 && password.length > 0
 
+  const handleLogin = () => {
+    // 판매자 로그인도 회원(구매자) 세션을 같이 열어줘야 판매자 센터에서 쇼핑몰 홈으로 나가도 로그인 상태가 유지된다
+    login({ userId: 1, email, name: email.split('@')[0] })
+    navigate('/seller')
+  }
+
   return (
     <div className="flex min-h-screen flex-col items-center gap-3 bg-white px-4">
-      <div className="mt-16 mb-2 flex flex-col items-center gap-3">
+      <button type="button" onClick={() => navigate('/login')} className="self-start p-1">
+        <ChevronLeft size={24} className="text-black" />
+      </button>
+
+      <div className="mb-2 flex flex-col items-center gap-3">
         <h1 className="text-title-3 tracking-widest text-black">앱팡</h1>
         <span className="bg-primary-200 text-body-11 rounded-full px-3 py-1 text-white">SELLER</span>
         <p className="text-body-9 text-gray-300">판매자 센터에 로그인하세요</p>
@@ -49,7 +61,7 @@ function SellerLoginPage() {
       <button
         type="button"
         disabled={!canLogin}
-        onClick={() => navigate('/seller')}
+        onClick={handleLogin}
         className={`text-body-5 w-full py-3 text-white ${canLogin ? 'bg-primary-200' : 'bg-gray-200'}`}
       >
         로그인
