@@ -21,8 +21,8 @@ jobs:
           API_TOKEN_GITHUB: ${{ secrets.AUTO_ACTIONS }}
         with:
           source-directory: 'output'
-          destination-github-username: [your-repo-github-username]
-          destination-repository-name: [your-repo-name]
+          destination-github-username: wnmxeo
+          destination-repository-name: basic-project-apppang-18th-team2-frontend
           user-email: ${{ secrets.EMAIL }}
           commit-message: ${{ github.event.commits[0].message }}
           target-branch: main
