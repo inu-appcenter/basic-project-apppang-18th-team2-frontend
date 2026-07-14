@@ -8,14 +8,22 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    container: pandoc/latex
-
     steps:
-      - uses: actions/checkout@v2
-      - name: Install mustache (to update the date)
-        run: apk add ruby && gem install mustache
-      - name: creates output
-        run: sh ./build.sh
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Rename output directory
+        run: mv dist output
+
       - name: Pushes to another repository
         id: push_directory
         uses: cpina/github-action-push-to-another-repository@main
@@ -28,5 +36,3 @@ jobs:
           user-email: ${{ secrets.EMAIL }}
           commit-message: ${{ github.event.commits[0].message }}
           target-branch: main
-      - name: Test get variable exported by push-to-another-repository
-        run: echo $DESTINATION_CLONED_DIRECTORY
