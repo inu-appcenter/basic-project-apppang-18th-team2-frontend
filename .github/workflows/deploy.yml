@@ -2,12 +2,14 @@ name: Deploy
 
 on:
   push:
-    branches: [main]
+    branches: ['main']
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     container: pandoc/latex
+
     steps:
       - uses: actions/checkout@v2
       - name: Install mustache (to update the date)
