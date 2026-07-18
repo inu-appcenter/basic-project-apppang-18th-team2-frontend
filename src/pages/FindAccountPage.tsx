@@ -1,6 +1,13 @@
+import axios from 'axios'
 import { ChevronLeft } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { findId } from '@/api/auth'
+
+function maskEmail(email: string) {
+  const [id, domain] = email.split('@')
+  return `${id.slice(0, 3)}****@${domain}`
+}
 
 function FindAccountPage() {
   const navigate = useNavigate()
@@ -8,11 +15,26 @@ function FindAccountPage() {
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [email, setEmail] = useState('')
+  const [foundEmail, setFoundEmail] = useState('')
+  const [findError, setFindError] = useState('')
 
   const canSubmit = tab === 'id' ? name && phone : name && email
 
-  const handleSubmit = () => {
-    if (tab === 'password') navigate('/reset-password')
+  const handleSubmit = async () => {
+    if (tab === 'password') {
+      navigate('/reset-password')
+      return
+    }
+
+    setFindError('')
+    setFoundEmail('')
+    try {
+      const { data } = await findId({ name, phone })
+      setFoundEmail(data.data.email)
+    } catch (error) {
+      const message = axios.isAxiosError(error) ? error.response?.data?.message : undefined
+      setFindError(message ?? '입력하신 정보와 일치하는 회원이 없습니다.')
+    }
   }
 
   return (
@@ -82,10 +104,12 @@ function FindAccountPage() {
           {tab === 'id' ? '아이디 찾기' : '비밀번호 찾기'}
         </button>
 
-        {tab === 'id' && canSubmit && (
+        {tab === 'id' && findError && <p className="text-body-10 text-red-300">{findError}</p>}
+
+        {tab === 'id' && foundEmail && (
           <div className="mt-2 rounded-xl bg-gray-100 p-5">
             <p className="text-body-9 text-gray-300">회원님의 아이디는</p>
-            <p className="text-body-3 mt-1 text-black">min****@shop.com</p>
+            <p className="text-body-3 mt-1 text-black">{maskEmail(foundEmail)}</p>
           </div>
         )}
       </div>

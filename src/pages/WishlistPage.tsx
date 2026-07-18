@@ -1,10 +1,33 @@
 import { Heart } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { getWishlist } from '@/api/wishlist'
 import { useWishlistStore } from '@/store/wishlistStore'
 
 function WishlistPage() {
   const navigate = useNavigate()
-  const { items, remove } = useWishlistStore()
+  const { items, remove, setItems } = useWishlistStore()
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    getWishlist()
+      .then(({ data }) => {
+        setItems(
+          data.data.products.map((product) => ({
+            id: product.productId,
+            name: product.name,
+            price: product.salePrice,
+            originPrice: product.discountRate > 0 ? product.originalPrice : undefined,
+            rating: product.rating,
+            reviews: product.reviewCount,
+          })),
+        )
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [setItems])
+
+  if (loading) return null
 
   if (items.length === 0) {
     return (

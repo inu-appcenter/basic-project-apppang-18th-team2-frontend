@@ -2,7 +2,7 @@ import axios from 'axios'
 import { Check, ChevronLeft, Eye, EyeOff } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { signup } from '@/api/auth'
+import { checkEmail, signup } from '@/api/auth'
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).{8,20}$/
@@ -79,8 +79,21 @@ function RegisterPage() {
   const validateField = (key: keyof Errors) => {
     switch (key) {
       case 'email':
-        if (!email) setError('email', '이메일을 입력하세요.')
-        else setError('email', emailRegex.test(email) ? undefined : '올바른 이메일 형식을 입력해주세요.')
+        if (!email) {
+          setError('email', '이메일을 입력하세요.')
+          break
+        }
+        if (!emailRegex.test(email)) {
+          setError('email', '올바른 이메일 형식을 입력해주세요.')
+          break
+        }
+        setError('email', undefined)
+        // 형식이 맞으면 서버에 실시간으로 중복 여부를 확인한다
+        checkEmail(email)
+          .then(({ data }) => {
+            if (!data.data.available) setError('email', '이미 사용 중인 이메일입니다.')
+          })
+          .catch(() => {})
         break
       case 'password':
         if (!password) setError('password', '비밀번호를 입력하세요.')

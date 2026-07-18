@@ -16,9 +16,10 @@ function LoginPage() {
   const handleLogin = async () => {
     try {
       const { data } = await loginRequest(email, password)
-      localStorage.setItem('accessToken', data.accessToken)
-      // 백엔드 로그인 응답에 아직 사용자 정보가 없어 입력값으로 임시 구성 (TODO: 응답에 user 추가되면 교체)
-      login({ userId: 1, email, name: email.split('@')[0] })
+      const { accessToken, user } = data.data
+      localStorage.setItem('accessToken', accessToken)
+      // 백엔드 로그인 응답에 아직 이름이 없어 이메일 앞부분으로 임시 구성 (TODO: 응답에 name 추가되면 교체)
+      login({ userId: user.userId, email: user.email, name: user.email.split('@')[0] })
       navigate('/')
     } catch {
       setLoginError(true)

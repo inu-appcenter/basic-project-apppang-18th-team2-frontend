@@ -1,5 +1,6 @@
 import { ChevronRight, Heart, LogIn, Settings, ShoppingBag, ShoppingCart, User } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { logout as logoutRequest } from '@/api/auth'
 import { useAuthStore } from '@/store/authStore'
 
 const recentOrders = [
@@ -113,8 +114,13 @@ function MyPage() {
         <button
           type="button"
           onClick={() => {
-            logout()
-            navigate('/login')
+            // 서버 세션 정리는 최선을 다해 시도하고, 실패해도 로컬 로그아웃은 진행한다
+            logoutRequest()
+              .catch(() => {})
+              .finally(() => {
+                logout()
+                navigate('/login')
+              })
           }}
           className="text-body-9 text-gray-300"
         >

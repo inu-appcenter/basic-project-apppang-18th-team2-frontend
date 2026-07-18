@@ -14,10 +14,14 @@ export type User = {
   profileImage?: string
 }
 
-// refreshToken은 응답 바디가 아니라 httpOnly 쿠키로 내려온다.
-// 백엔드가 아직 로그인 응답에 user 정보를 포함하지 않아 accessToken만 온다 (2026-07-10 기준 develop 브랜치)
+// refreshToken은 응답 바디뿐 아니라 httpOnly 쿠키로도 내려온다 (쿠키가 실제 갱신에 쓰이는 값)
 export type LoginResponse = {
   accessToken: string
+  refreshToken: string
+  user: {
+    userId: number
+    email: string
+  }
 }
 
 export type SignupRequest = {
@@ -27,6 +31,19 @@ export type SignupRequest = {
   phone: string
   agreeRequiredTerms: boolean
   agreeMarketing: boolean
+}
+
+export type EmailCheckResponse = {
+  available: boolean
+}
+
+export type FindIdRequest = {
+  name: string
+  phone: string
+}
+
+export type FindIdResponse = {
+  email: string
 }
 
 // PRODUCT
@@ -40,6 +57,31 @@ export type Product = {
   rating: number
   reviewCount: number
   wish: boolean
+}
+
+export type ProductListResponse = {
+  products: Product[]
+  page: number
+  hasNext: boolean
+}
+
+export type ProductDetailResponse = {
+  productId: number
+  name: string
+  originalPrice: number
+  discountRate: number
+  salePrice: number
+  stock: number
+  rating: number
+  reviewCount: number
+  wish: boolean
+  description: string
+  images: string[]
+}
+
+// WISHLIST
+export type WishlistResponse = {
+  products: Product[]
 }
 
 // CART
