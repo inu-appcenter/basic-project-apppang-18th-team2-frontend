@@ -6,5 +6,5 @@ export function getWishlist() {
 }
 
 export function addWishlist(productId: number) {
-  return instance.post<ApiResponse<null>>(`/api/wishlist/${productId}`)
+  return instance.post<ApiResponse<null>>('/api/wishlist', { productId })
 }
