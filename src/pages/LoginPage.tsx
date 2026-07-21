@@ -26,6 +26,11 @@ function LoginPage() {
     }
   }
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (isActive) handleLogin()
+  }
+
   return (
     <div className="relative flex flex-col items-center gap-3 px-3 min-h-screen bg-white w-full">
       <header className="flex justify-end items-center w-full py-5">
@@ -40,60 +45,59 @@ function LoginPage() {
         <img src="/apppang-logo.png" alt="앱팡" className="h-[29.51px]" />
       </div>
 
-      {/* 이메일 */}
-      <div className="flex items-center w-full border border-gray-300 px-3 py-3 gap-2">
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="아이디(이메일)"
-          className="text-body-1 flex-1 outline-none placeholder:text-gray-300"
-        />
-        {email && (
-          <button type="button" onClick={() => setEmail('')} className="flex items-center justify-center w-5 h-5 bg-gray-300 rounded-full shrink-0">
-            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round">
-              <path d="M2 2l6 6M8 2L2 8" />
-            </svg>
-          </button>
-        )}
-      </div>
-
-      {/* 비밀번호 */}
-      <div className="flex items-center w-full border border-gray-300 px-3 py-3 gap-2">
-        <input
-          type={showPassword ? 'text' : 'password'}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="비밀번호"
-          className="text-body-1 flex-1 outline-none placeholder:text-gray-300"
-        />
-        <button type="button" onClick={() => setShowPassword((prev) => !prev)} className="shrink-0">
-          {showPassword ? (
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7E7E7E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94" />
-              <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19" />
-              <line x1="1" y1="1" x2="23" y2="23" />
-            </svg>
-          ) : (
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7E7E7E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-              <circle cx="12" cy="12" r="3" />
-            </svg>
+      {/* 이메일/비밀번호/로그인 */}
+      <form onSubmit={handleSubmit} className="flex flex-col items-center gap-3 w-full">
+        <div className="flex items-center w-full border border-gray-300 px-3 py-3 gap-2">
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="아이디(이메일)"
+            className="text-body-1 flex-1 outline-none placeholder:text-gray-300"
+          />
+          {email && (
+            <button type="button" onClick={() => setEmail('')} className="flex items-center justify-center w-5 h-5 bg-gray-300 rounded-full shrink-0">
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round">
+                <path d="M2 2l6 6M8 2L2 8" />
+              </svg>
+            </button>
           )}
-        </button>
-      </div>
+        </div>
 
-      {/* 로그인 */}
-      <button
-        type="button"
-        disabled={!isActive}
-        onClick={handleLogin}
-        className={`flex justify-center items-center w-full py-3 text-base font-bold text-white transition-colors ${
-          isActive ? 'bg-primary-200' : 'bg-gray-200'
-        }`}
-      >
-        로그인
-      </button>
+        <div className="flex items-center w-full border border-gray-300 px-3 py-3 gap-2">
+          <input
+            type={showPassword ? 'text' : 'password'}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="비밀번호"
+            className="text-body-1 flex-1 outline-none placeholder:text-gray-300"
+          />
+          <button type="button" onClick={() => setShowPassword((prev) => !prev)} className="shrink-0">
+            {showPassword ? (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7E7E7E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94" />
+                <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19" />
+                <line x1="1" y1="1" x2="23" y2="23" />
+              </svg>
+            ) : (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7E7E7E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            )}
+          </button>
+        </div>
+
+        <button
+          type="submit"
+          disabled={!isActive}
+          className={`flex justify-center items-center w-full py-3 text-base font-bold text-white transition-colors ${
+            isActive ? 'bg-primary-200' : 'bg-gray-200'
+          }`}
+        >
+          로그인
+        </button>
+      </form>
 
       {/* 아이디/비밀번호 찾기 */}
       <div className="flex justify-end w-full">

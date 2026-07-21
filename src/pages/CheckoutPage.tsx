@@ -1,12 +1,12 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { Check, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-const address = {
-  name: '주민서',
-  detail: '서울 강남구 테헤란로 123, 4층 401호',
-  phone: '010-1234-5678',
-}
+const ADDRESSES = [
+  { id: 1, label: '기본배송지', name: '주민서', detail: '서울 강남구 테헤란로 123, 4층 401호', phone: '010-1234-5678' },
+  { id: 2, label: '회사', name: '주민서', detail: '서울 마포구 월드컵로 88, 8층', phone: '010-1234-5678' },
+  { id: 3, label: '집', name: '주민서', detail: '경기 성남시 분당구 판교로 45, 101동 1502호', phone: '010-1234-5678' },
+]
 
 const orderProducts = [
   { id: 1, name: '남성 경량 구스다운 패딩 · 블랙/L', arrival: '내일(목) 도착 예정' },
@@ -18,6 +18,10 @@ const payMethods = ['간편결제 (페이)', '신용·체크카드', '계좌이�
 function CheckoutPage() {
   const navigate = useNavigate()
   const [selectedPay, setSelectedPay] = useState(0)
+  const [selectedAddressId, setSelectedAddressId] = useState(ADDRESSES[0].id)
+  const [addressModalOpen, setAddressModalOpen] = useState(false)
+
+  const address = ADDRESSES.find((a) => a.id === selectedAddressId) ?? ADDRESSES[0]
 
   const productPrice = 130800
   const shippingFee: number = 0
@@ -37,14 +41,14 @@ function CheckoutPage() {
         <section className="px-4 py-4">
           <div className="mb-2 flex items-center justify-between">
             <h2 className="text-body-5 text-black">배송지</h2>
-            <button type="button" className="flex items-center gap-0.5 text-gray-300">
+            <button type="button" onClick={() => setAddressModalOpen(true)} className="flex items-center gap-0.5 text-gray-300">
               <span className="text-body-9">변경</span>
               <ChevronRight size={14} />
             </button>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-body-7 text-black">{address.name}</span>
-            <span className="text-body-11 rounded-full bg-gray-100 px-2 py-0.5 text-gray-300">기본배송지</span>
+            <span className="text-body-11 rounded-full bg-gray-100 px-2 py-0.5 text-gray-300">{address.label}</span>
           </div>
           <p className="text-body-9 mt-1 text-gray-300">{address.detail}</p>
           <p className="text-body-9 text-gray-300">{address.phone}</p>
@@ -110,6 +114,53 @@ function CheckoutPage() {
             {total.toLocaleString()}원 결제하기
           </button>
         </div>
+
+        {addressModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40">
+            <div className="w-full max-w-120 rounded-t-2xl bg-white p-5 pb-8">
+              <h2 className="text-body-5 mb-4 text-black">배송지 선택</h2>
+              <ul className="flex flex-col gap-2">
+                {ADDRESSES.map((a) => (
+                  <li key={a.id}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedAddressId(a.id)
+                        setAddressModalOpen(false)
+                      }}
+                      className={`flex w-full items-start gap-3 rounded-xl border px-4 py-3 text-left ${
+                        a.id === selectedAddressId ? 'border-primary-200 bg-primary-100' : 'border-gray-200'
+                      }`}
+                    >
+                      <span
+                        className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
+                          a.id === selectedAddressId ? 'border-primary-200 bg-primary-200' : 'border-gray-200'
+                        }`}
+                      >
+                        {a.id === selectedAddressId && <Check size={12} className="text-white" />}
+                      </span>
+                      <span className="flex-1">
+                        <span className="flex items-center gap-2">
+                          <span className="text-body-7 text-black">{a.name}</span>
+                          <span className="text-body-11 rounded-full bg-gray-100 px-2 py-0.5 text-gray-300">{a.label}</span>
+                        </span>
+                        <span className="text-body-9 mt-1 block text-gray-300">{a.detail}</span>
+                        <span className="text-body-9 block text-gray-300">{a.phone}</span>
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              <button
+                type="button"
+                onClick={() => setAddressModalOpen(false)}
+                className="text-body-6 mt-4 w-full rounded-lg border border-gray-200 py-3 text-black"
+              >
+                닫기
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
