@@ -2,7 +2,6 @@ import { ArrowLeft, ChevronRight, Heart, Minus, Plus, ThumbsUp } from 'lucide-re
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getProduct } from '@/api/product'
-import { addWishlist } from '@/api/wishlist'
 import { useCartStore } from '@/store/cartStore'
 import { useWishlistStore } from '@/store/wishlistStore'
 import type { ProductDetailResponse } from '@/types/api'
@@ -17,8 +16,6 @@ const REVIEW_TEMPLATES = [
 function buildReviews() {
   return REVIEW_TEMPLATES.map((review, i) => ({ id: i, ...review, helpful: (i + 1) * 3, helped: false }))
 }
-
-const DEFAULT_OPTION = '기본'
 
 function ProductDetailPage() {
   const { productId } = useParams()
@@ -93,20 +90,18 @@ function ProductDetailPage() {
       originPrice: product.discountRate > 0 ? product.originalPrice : undefined,
       rating: product.rating,
       reviews: product.reviewCount,
-    })
-    // 찜 해제 API는 아직 백엔드에 없어 추가만 서버에 반영한다
-    if (!wished) addWishlist(product.productId).catch(() => {})
+    }).catch(() => {})
   }
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (stock === 0) return
-    addToCart({ id: product.productId, name: product.name, option: DEFAULT_OPTION, price: product.salePrice, quantity, stock })
+    await addToCart(product.productId, quantity)
     setToast('장바구니에 담았습니다')
   }
 
-  const handleBuyNow = () => {
+  const handleBuyNow = async () => {
     if (stock === 0) return
-    addToCart({ id: product.productId, name: product.name, option: DEFAULT_OPTION, price: product.salePrice, quantity, stock })
+    await addToCart(product.productId, quantity)
     navigate('/checkout')
   }
 

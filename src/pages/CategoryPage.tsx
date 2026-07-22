@@ -1,14 +1,14 @@
 import { Loader2 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { getBanners } from '@/api/banner'
 import { getProducts } from '@/api/product'
-import type { Product } from '@/types/api'
-
-const BANNER_COUNT = 5
+import type { Banner, Product } from '@/types/api'
 
 function CategoryPage() {
   const navigate = useNavigate()
   const { categoryName } = useParams()
+  const [banners, setBanners] = useState<Banner[]>([])
   const [current, setCurrent] = useState(0)
   const startX = useRef(0)
 
@@ -17,11 +17,18 @@ function CategoryPage() {
   const [failed, setFailed] = useState(false)
 
   useEffect(() => {
+    getBanners()
+      .then(({ data }) => setBanners(data.data))
+      .catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    if (banners.length <= 1) return undefined
     const timer = setInterval(() => {
-      setCurrent((c) => (c + 1) % BANNER_COUNT)
+      setCurrent((c) => (c + 1) % banners.length)
     }, 3000)
     return () => clearInterval(timer)
-  }, [])
+  }, [banners.length])
 
   // categoryId ↔ 카테고리 슬러그 매핑이 백엔드에 아직 없어 임시로 전체 상품을 보여준다
   useEffect(() => {
@@ -38,41 +45,42 @@ function CategoryPage() {
   }
 
   const handleTouchEnd = (e: React.TouchEvent) => {
+    if (banners.length <= 1) return
     const diff = startX.current - e.changedTouches[0].clientX
-    if (diff > 50) setCurrent((c) => (c + 1) % BANNER_COUNT)
-    else if (diff < -50) setCurrent((c) => (c - 1 + BANNER_COUNT) % BANNER_COUNT)
+    if (diff > 50) setCurrent((c) => (c + 1) % banners.length)
+    else if (diff < -50) setCurrent((c) => (c - 1 + banners.length) % banners.length)
   }
 
   return (
     <div className="bg-white">
       <h1 className="text-title-5 px-4 py-3 text-black">{categoryName ?? '패션'}</h1>
 
-      <div
-        className="relative mx-4 h-40 overflow-hidden rounded-2xl"
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-      >
+      {banners.length > 0 && (
         <div
-          className="flex h-full transition-transform duration-300"
-          style={{ transform: `translateX(-${current * 100}%)` }}
+          className="relative mx-4 h-40 overflow-hidden rounded-2xl"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
         >
-          {Array.from({ length: BANNER_COUNT }).map((_, i) => (
-            <button
-              key={i}
-              type="button"
-              onClick={() => navigate('/products')}
-              className={`flex h-full min-w-full items-center justify-center ${
-                i % 2 === 0 ? 'bg-secondary-100' : 'bg-primary-100'
-              }`}
-            >
-              <span className="text-body-3 text-gray-300">이벤트 배너 {i + 1}</span>
-            </button>
-          ))}
+          <div
+            className="flex h-full transition-transform duration-300"
+            style={{ transform: `translateX(-${current * 100}%)` }}
+          >
+            {banners.map((banner) => (
+              <button
+                key={banner.bannerId}
+                type="button"
+                onClick={() => navigate(banner.targetUrl || '/products')}
+                className="bg-secondary-100 flex h-full min-w-full items-center justify-center"
+              >
+                <img src={banner.imageUrl} alt={banner.title} className="h-full w-full object-cover" />
+              </button>
+            ))}
+          </div>
+          <span className="text-body-11 absolute right-3 bottom-3 rounded-full bg-black/45 px-2 py-1 text-white">
+            {current + 1} / {banners.length}
+          </span>
         </div>
-        <span className="text-body-11 absolute right-3 bottom-3 rounded-full bg-black/45 px-2 py-1 text-white">
-          {current + 1} / {BANNER_COUNT}
-        </span>
-      </div>
+      )}
 
       {loading ? (
         <div className="flex items-center justify-center py-24">

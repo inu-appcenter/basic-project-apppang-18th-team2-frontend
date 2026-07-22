@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { addWishlist, deleteWishlist } from '@/api/wishlist'
 
 export type WishlistItem = {
   id: number
@@ -13,8 +14,8 @@ export type WishlistItem = {
 type WishlistState = {
   items: WishlistItem[]
   isWished: (id: number) => boolean
-  toggle: (item: WishlistItem) => void
-  remove: (id: number) => void
+  toggle: (item: WishlistItem) => Promise<void>
+  remove: (id: number) => Promise<void>
   setItems: (items: WishlistItem[]) => void
 }
 
@@ -24,11 +25,20 @@ export const useWishlistStore = create<WishlistState>()(
     (set, get) => ({
       items: [],
       isWished: (id) => get().items.some((item) => item.id === id),
-      toggle: (item) => {
+      toggle: async (item) => {
         const wished = get().isWished(item.id)
-        set({ items: wished ? get().items.filter((i) => i.id !== item.id) : [...get().items, item] })
+        if (wished) {
+          set({ items: get().items.filter((i) => i.id !== item.id) })
+          await deleteWishlist(item.id)
+        } else {
+          set({ items: [...get().items, item] })
+          await addWishlist(item.id)
+        }
       },
-      remove: (id) => set({ items: get().items.filter((item) => item.id !== id) }),
+      remove: async (id) => {
+        set({ items: get().items.filter((item) => item.id !== id) })
+        await deleteWishlist(id)
+      },
       setItems: (items) => set({ items }),
     }),
     { name: 'wishlist' },

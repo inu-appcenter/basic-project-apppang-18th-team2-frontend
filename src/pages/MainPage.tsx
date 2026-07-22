@@ -1,14 +1,8 @@
 import { Camera, Gift, Globe, Grid3x3, Search, Shirt, ShoppingBag, Sparkles, Tag, Utensils, Watch, Zap } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-
-const banners = [
-  { id: 1, bg: 'bg-secondary-100' },
-  { id: 2, bg: 'bg-primary-100' },
-  { id: 3, bg: 'bg-secondary-100' },
-  { id: 4, bg: 'bg-primary-100' },
-  { id: 5, bg: 'bg-secondary-100' },
-]
+import { getBanners } from '@/api/banner'
+import type { Banner } from '@/types/api'
 
 const categories = [
   { label: '자주 산 상품', path: '/category/frequent', icon: <ShoppingBag size={36} /> },
@@ -25,21 +19,30 @@ const categories = [
 
 function MainPage() {
   const navigate = useNavigate()
+  const [banners, setBanners] = useState<Banner[]>([])
   const [current, setCurrent] = useState(0)
   const startX = useRef(0)
 
   useEffect(() => {
+    getBanners()
+      .then(({ data }) => setBanners(data.data))
+      .catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    if (banners.length <= 1) return undefined
     const timer = setInterval(() => {
       setCurrent((prev) => (prev + 1) % banners.length)
     }, 3000)
     return () => clearInterval(timer)
-  }, [])
+  }, [banners.length])
 
   const handleTouchStart = (e: React.TouchEvent) => {
     startX.current = e.touches[0].clientX
   }
 
   const handleTouchEnd = (e: React.TouchEvent) => {
+    if (banners.length <= 1) return
     const diff = startX.current - e.changedTouches[0].clientX
     if (diff > 50) setCurrent((prev) => (prev + 1) % banners.length)
     else if (diff < -50) setCurrent((prev) => (prev - 1 + banners.length) % banners.length)
@@ -61,26 +64,33 @@ function MainPage() {
       </div>
 
       {/* 배너 슬라이더 */}
-      <div className="relative h-52 overflow-hidden" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-        <div className="flex h-full transition-transform duration-300 ease-in-out" style={{ transform: `translateX(-${current * 100}%)` }}>
-          {banners.map((banner) => (
-            <button key={banner.id} type="button" onClick={() => navigate('/products')} className={`flex h-full min-w-full items-center justify-center ${banner.bg}`}>
-              <span className="text-body-2 font-bold text-gray-300">이벤트 배너 {banner.id}</span>
-            </button>
-          ))}
+      {banners.length > 0 && (
+        <div className="relative h-52 overflow-hidden" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+          <div className="flex h-full transition-transform duration-300 ease-in-out" style={{ transform: `translateX(-${current * 100}%)` }}>
+            {banners.map((banner) => (
+              <button
+                key={banner.bannerId}
+                type="button"
+                onClick={() => navigate(banner.targetUrl || '/products')}
+                className="bg-secondary-100 flex h-full min-w-full items-center justify-center"
+              >
+                <img src={banner.imageUrl} alt={banner.title} className="h-full w-full object-cover" />
+              </button>
+            ))}
+          </div>
+          <div className="absolute bottom-4 left-0 flex w-full items-center justify-center gap-2">
+            {banners.map((banner, i) => (
+              <button
+                key={banner.bannerId}
+                type="button"
+                onClick={() => setCurrent(i)}
+                aria-label={`배너 ${i + 1}`}
+                className={`h-2 w-2 rounded-full ${i === current ? 'bg-black' : 'bg-gray-200'}`}
+              />
+            ))}
+          </div>
         </div>
-        <div className="absolute bottom-4 left-0 flex w-full items-center justify-center gap-2">
-          {banners.map((banner, i) => (
-            <button
-              key={banner.id}
-              type="button"
-              onClick={() => setCurrent(i)}
-              aria-label={`배너 ${i + 1}`}
-              className={`h-2 w-2 rounded-full ${i === current ? 'bg-black' : 'bg-gray-200'}`}
-            />
-          ))}
-        </div>
-      </div>
+      )}
 
       {/* 카테고리 */}
       <div className="grid grid-cols-5 px-2 py-4">

@@ -97,6 +97,11 @@ export type CartItem = {
   stock: number
 }
 
+export type CartResponse = {
+  items: CartItem[]
+  totalPrice: number
+}
+
 // ORDER
 export type OrderStatus = 'PAID' | 'PREPARING' | 'DELIVERING' | 'DELIVERED' | 'CANCELLED'
 export type PaymentStatus = 'PAID' | 'PENDING' | 'CANCELLED'
@@ -122,6 +127,14 @@ export type Review = {
   createdAt: string
   helpCount: number
   helped: boolean
+}
+
+// BANNER
+export type Banner = {
+  bannerId: number
+  title: string
+  imageUrl: string
+  targetUrl: string
 }
 
 // ADDRESS

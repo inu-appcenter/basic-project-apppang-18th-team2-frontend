@@ -165,9 +165,7 @@ function ChatbotPage() {
                       </button>
                       <button
                         type="button"
-                        onClick={() =>
-                          addToCart({ id: product.id, name: product.name, option: '기본', price: product.price, quantity: 1, stock: 10 })
-                        }
+                        onClick={() => addToCart(product.id, 1).catch(() => {})}
                         className="text-body-12 mt-1.5 flex w-full items-center justify-center gap-1 rounded-lg border border-gray-200 py-1.5 text-black"
                       >
                         <ShoppingCart size={12} />

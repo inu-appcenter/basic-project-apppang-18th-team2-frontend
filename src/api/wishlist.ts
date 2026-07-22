@@ -8,3 +8,7 @@ export function getWishlist() {
 export function addWishlist(productId: number) {
   return instance.post<ApiResponse<null>>('/api/wishlist', { productId })
 }
+
+export function deleteWishlist(productId: number) {
+  return instance.delete<ApiResponse<null>>('/api/wishlist', { data: { productId } })
+}

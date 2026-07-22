@@ -68,7 +68,7 @@ function WishlistPage() {
                 ★ {item.rating} <span className="text-gray-300">({item.reviews.toLocaleString()})</span>
               </p>
             </div>
-            <button type="button" onClick={() => remove(item.id)} aria-label="찜 해제" className="self-start p-1 text-black">
+            <button type="button" onClick={() => remove(item.id).catch(() => {})} aria-label="찜 해제" className="self-start p-1 text-black">
               <Heart size={22} fill="currentColor" />
             </button>
           </li>
