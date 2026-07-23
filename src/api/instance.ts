@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const instance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
+  baseURL: '',
   timeout: 10000,
   withCredentials: true, // refreshToken httpOnly 쿠키를 주고받기 위해 필요
   headers: {
