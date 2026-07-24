@@ -1,7 +1,10 @@
 import { ChevronRight, Heart, LogIn, Settings, ShoppingBag, ShoppingCart, User } from 'lucide-react'
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { logout as logoutRequest } from '@/api/auth'
+import { getWishlist } from '@/api/wishlist'
 import { useAuthStore } from '@/store/authStore'
+import { useWishlistStore } from '@/store/wishlistStore'
 
 const recentOrders = [
   { id: 1, productId: 101, status: '배송 완료' },
@@ -24,6 +27,26 @@ function MyPage() {
   const navigate = useNavigate()
   const user = useAuthStore((state) => state.user)
   const logout = useAuthStore((state) => state.logout)
+  const wishlistCount = useWishlistStore((state) => state.items.length)
+  const setWishlistItems = useWishlistStore((state) => state.setItems)
+
+  useEffect(() => {
+    if (!user) return
+    getWishlist()
+      .then(({ data }) => {
+        setWishlistItems(
+          data.data.products.map((product) => ({
+            id: product.productId,
+            name: product.name,
+            price: product.salePrice,
+            originPrice: product.discountRate > 0 ? product.originalPrice : undefined,
+            rating: product.rating,
+            reviews: product.reviewCount,
+          })),
+        )
+      })
+      .catch(() => {})
+  }, [user, setWishlistItems])
 
   // 로그인 안 한 상태
   if (!user) {
@@ -66,7 +89,7 @@ function MyPage() {
         </button>
         <button type="button" onClick={() => navigate('/wishlist')} className="flex flex-col items-center gap-1 rounded-xl bg-gray-100 py-4">
           <Heart size={20} className="text-primary-200" />
-          <span className="text-title-5 text-black">4</span>
+          <span className="text-title-5 text-black">{wishlistCount}</span>
           <span className="text-body-9 text-gray-300">찜 리스트</span>
         </button>
       </div>

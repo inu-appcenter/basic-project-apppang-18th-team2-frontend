@@ -94,9 +94,15 @@ function CartPage() {
                 {item.productName}
               </button>
               <p className="text-body-9 mt-1 text-secondary-300">무료배송 · 내일 도착 예정</p>
+              {item.discountRate > 0 && (
+                <p className="text-body-11 text-gray-300 line-through">{(item.originalPrice * item.quantity).toLocaleString()}원</p>
+              )}
 
               <div className="mt-2 flex items-center justify-between">
-                <p className="text-body-3 text-black">{(item.salePrice * item.quantity).toLocaleString()}원</p>
+                <div className="flex items-center gap-1.5">
+                  {item.discountRate > 0 && <span className="text-body-11 text-red-300 font-bold">{item.discountRate}%</span>}
+                  <p className="text-body-3 text-black">{(item.salePrice * item.quantity).toLocaleString()}원</p>
+                </div>
                 <div className="flex items-center rounded-full border border-gray-200">
                   <button
                     type="button"

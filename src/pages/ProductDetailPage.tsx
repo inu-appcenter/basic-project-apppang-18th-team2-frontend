@@ -21,10 +21,10 @@ function ProductDetailPage() {
   const { productId } = useParams()
   const navigate = useNavigate()
   const addToCart = useCartStore((state) => state.addItem)
-  const isWished = useWishlistStore((state) => state.isWished)
   const toggleWish = useWishlistStore((state) => state.toggle)
 
   const [product, setProduct] = useState<ProductDetailResponse | null>(null)
+  const wished = useWishlistStore((state) => state.items.some((item) => item.id === product?.productId))
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
   const [currentImage, setCurrentImage] = useState(0)
@@ -68,7 +68,6 @@ function ProductDetailPage() {
   }
 
   const { stock } = product
-  const wished = isWished(product.productId)
   const images = product.images.filter(Boolean)
   const imageCount = Math.max(images.length, 1)
 

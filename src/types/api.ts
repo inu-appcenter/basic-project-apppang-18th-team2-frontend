@@ -138,11 +138,12 @@ export type Banner = {
 }
 
 // ADDRESS
+// 백엔드 AddressResponse의 boolean 필드 isDefault가 Lombok+Jackson 직렬화 과정에서 "default"로 내려옴
 export type Address = {
   addressId: number
   receiver: string
   phone: string
   roadAddress: string
   detailAddress: string
-  isDefault: boolean
+  default: boolean
 }
