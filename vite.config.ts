@@ -10,4 +10,9 @@ export default defineConfig({
       '@': resolve(__dirname, 'src'),
     },
   },
+  server: {
+    proxy: {
+      '/api': 'http://localhost:8080', // 로컬 개발: /api를 로컬 백엔드로 전달 (배포에선 nginx가 담당)
+    },
+  },
 })

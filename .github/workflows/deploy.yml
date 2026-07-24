@@ -1,11 +1,11 @@
-name: Deploy
+name: Deploy to EC2
 
 on:
   push:
     branches: ['main']
 
 jobs:
-  build:
+  deploy-ec2:
     runs-on: ubuntu-latest
 
     steps:
@@ -14,25 +14,19 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: npm
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Install & Build
+        run: |
+          npm ci
+          npm run build
 
-      - name: Build
-        run: npm run build
-
-      - name: Rename output directory
-        run: mv dist output
-
-      - name: Pushes to another repository
-        id: push_directory
-        uses: cpina/github-action-push-to-another-repository@main
-        env:
-          API_TOKEN_GITHUB: ${{ secrets.AUTO_ACTIONS }}
+      - name: Copy dist to EC2
+        uses: appleboy/scp-action@v0.1.7
         with:
-          source-directory: 'output'
-          destination-github-username: wnmxeo
-          destination-repository-name: basic-project-apppang-18th-team2-frontend
-          user-email: ${{ secrets.EMAIL }}
-          commit-message: ${{ github.event.commits[0].message }}
-          target-branch: main
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "dist/*"
+          target: "~/apppang/front-dist"
+          strip_components: 1
