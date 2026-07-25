@@ -175,7 +175,20 @@ function CartPage() {
           <button
             type="button"
             disabled={selectedItems.length === 0}
-            onClick={() => navigate('/checkout')}
+            onClick={() =>
+              navigate('/checkout', {
+                state: {
+                  fromCart: true,
+                  items: selectedItems.map((item) => ({
+                    productId: item.productId,
+                    name: item.productName,
+                    thumbnail: item.thumbnail,
+                    salePrice: item.salePrice,
+                    quantity: item.quantity,
+                  })),
+                },
+              })
+            }
             className="bg-primary-200 text-body-5 flex-1 rounded-lg py-3 text-white disabled:bg-gray-200"
           >
             구매하기 ({selectedItems.length})

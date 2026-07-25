@@ -117,6 +117,28 @@ export type OrderSummary = {
   itemCount: number
 }
 
+export type OrderItem = {
+  productId: number
+  quantity: number
+}
+
+export type CreateOrderResponse = {
+  orderId: number
+  totalPrice: number
+}
+
+// PAYMENT
+export type PaymentMethod = 'CARD' | 'KAKAO_PAY' | 'TOSS_PAY'
+
+export type PaymentResponse = {
+  paymentId: number
+  orderId: number
+  amount: number
+  paymentMethod: string
+  paymentStatus: string
+  paidAt: string
+}
+
 // REVIEW
 export type Review = {
   reviewId: number

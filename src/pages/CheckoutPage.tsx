@@ -1,23 +1,46 @@
 import { Check, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { getAddresses } from '@/api/address'
-import type { Address } from '@/types/api'
+import { createOrder } from '@/api/order'
+import { requestPayment } from '@/api/payment'
+import { useCartStore } from '@/store/cartStore'
+import type { Address, PaymentMethod } from '@/types/api'
 
-const orderProducts = [
-  { id: 1, name: '남성 경량 구스다운 패딩 · 블랙/L', arrival: '내일(목) 도착 예정' },
-  { id: 2, name: '베이직 니트 스웨터 · 오트밀/M ×2', arrival: '모레(금) 도착 예정' },
+export type CheckoutItem = {
+  productId: number
+  name: string
+  thumbnail: string
+  salePrice: number
+  quantity: number
+}
+
+export type CheckoutState = {
+  fromCart: boolean
+  items: CheckoutItem[]
+}
+
+const payMethods: { label: string; value: PaymentMethod }[] = [
+  { label: '신용·체크카드', value: 'CARD' },
+  { label: '카카오페이', value: 'KAKAO_PAY' },
+  { label: '토스페이', value: 'TOSS_PAY' },
 ]
-
-const payMethods = ['간편결제 (페이)', '신용·체크카드', '계좌이체']
 
 function CheckoutPage() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const state = location.state as CheckoutState | null
+  const items = state?.items ?? []
+  const fromCart = state?.fromCart ?? false
+
   const [selectedPay, setSelectedPay] = useState(0)
   const [addresses, setAddresses] = useState<Address[]>([])
   const [addressLoading, setAddressLoading] = useState(true)
   const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null)
   const [addressModalOpen, setAddressModalOpen] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
+  const clearCart = useCartStore((s) => s.clear)
 
   useEffect(() => {
     getAddresses()
@@ -32,10 +55,28 @@ function CheckoutPage() {
 
   const address = addresses.find((a) => a.addressId === selectedAddressId) ?? null
 
-  const productPrice = 130800
-  const shippingFee: number = 0
-  const discount = 5000
-  const total = productPrice + shippingFee - discount
+  const productPrice = items.reduce((sum, item) => sum + item.salePrice * item.quantity, 0)
+  const shippingFee = 0
+  const total = productPrice + shippingFee
+
+  const handlePay = async () => {
+    if (!address || items.length === 0 || submitting) return
+    setSubmitting(true)
+    setError('')
+    try {
+      const { data: orderData } = await createOrder(
+        address.addressId,
+        items.map((item) => ({ productId: item.productId, quantity: item.quantity })),
+      )
+      await requestPayment(orderData.data.orderId, payMethods[selectedPay].value, fromCart)
+      if (fromCart) clearCart()
+      navigate('/order-complete')
+    } catch {
+      setError('결제에 실패했습니다. 다시 시도해주세요.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   return (
     <div className="flex min-h-screen justify-center bg-white">
@@ -80,18 +121,26 @@ function CheckoutPage() {
         <div className="h-2 bg-gray-100" />
 
         <section className="px-4 py-4">
-          <h2 className="text-body-5 mb-3 text-black">주문 상품 {orderProducts.length}개</h2>
-          <ul className="flex flex-col gap-3">
-            {orderProducts.map((p) => (
-              <li key={p.id} className="flex gap-3">
-                <div className="h-14 w-14 shrink-0 rounded-lg bg-gray-100" />
-                <div>
-                  <p className="text-body-8 text-black">{p.name}</p>
-                  <p className="text-body-10 text-gray-300">{p.arrival}</p>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <h2 className="text-body-5 mb-3 text-black">주문 상품 {items.length}개</h2>
+          {items.length === 0 ? (
+            <p className="text-body-9 text-gray-300">주문할 상품이 없습니다</p>
+          ) : (
+            <ul className="flex flex-col gap-3">
+              {items.map((item) => (
+                <li key={item.productId} className="flex gap-3">
+                  <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-gray-100">
+                    {item.thumbnail && <img src={item.thumbnail} alt={item.name} className="h-full w-full object-cover" />}
+                  </div>
+                  <div>
+                    <p className="text-body-8 text-black">
+                      {item.name} × {item.quantity}
+                    </p>
+                    <p className="text-body-10 text-gray-300">{(item.salePrice * item.quantity).toLocaleString()}원</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
 
         <div className="h-2 bg-gray-100" />
@@ -100,11 +149,11 @@ function CheckoutPage() {
           <h2 className="text-body-5 mb-3 text-black">결제 수단</h2>
           <div className="flex flex-col gap-3">
             {payMethods.map((method, i) => (
-              <button key={method} type="button" onClick={() => setSelectedPay(i)} className="flex items-center gap-2 text-left">
+              <button key={method.value} type="button" onClick={() => setSelectedPay(i)} className="flex items-center gap-2 text-left">
                 <span className={`flex h-5 w-5 items-center justify-center rounded-full border-2 ${selectedPay === i ? 'border-black' : 'border-gray-200'}`}>
                   {selectedPay === i && <span className="h-2.5 w-2.5 rounded-full bg-black" />}
                 </span>
-                <span className={`text-body-7 ${selectedPay === i ? 'text-black' : 'text-gray-300'}`}>{method}</span>
+                <span className={`text-body-7 ${selectedPay === i ? 'text-black' : 'text-gray-300'}`}>{method.label}</span>
               </button>
             ))}
           </div>
@@ -122,10 +171,6 @@ function CheckoutPage() {
             <span className="text-body-8 text-gray-300">배송비</span>
             <span className="text-body-8 text-black">{shippingFee === 0 ? '무료' : `${shippingFee.toLocaleString()}원`}</span>
           </div>
-          <div className="flex justify-between py-1">
-            <span className="text-body-8 text-gray-300">할인</span>
-            <span className="text-body-8 text-black">- {discount.toLocaleString()}원</span>
-          </div>
           <div className="mt-2 flex justify-between border-t border-gray-100 pt-3">
             <span className="text-body-5 text-black">최종 결제 금액</span>
             <span className="text-body-3 text-black">{total.toLocaleString()}원</span>
@@ -133,7 +178,14 @@ function CheckoutPage() {
         </section>
 
         <div className="fixed bottom-0 left-1/2 w-full max-w-120 -translate-x-1/2 border-t border-gray-100 bg-white p-4">
-          <button type="button" onClick={() => navigate('/order-complete')} className="bg-primary-200 text-body-5 w-full rounded-lg py-3.5 text-white">
+          {error && <p className="text-body-11 mb-2 text-center text-red-300">{error}</p>}
+          <button
+            type="button"
+            onClick={handlePay}
+            disabled={!address || items.length === 0 || submitting}
+            className="bg-primary-200 text-body-5 flex w-full items-center justify-center gap-2 rounded-lg py-3.5 text-white disabled:bg-gray-200"
+          >
+            {submitting && <Loader2 size={18} className="animate-spin" />}
             {total.toLocaleString()}원 결제하기
           </button>
         </div>

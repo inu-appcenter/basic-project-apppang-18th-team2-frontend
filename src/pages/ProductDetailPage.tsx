@@ -98,10 +98,22 @@ function ProductDetailPage() {
     setToast('장바구니에 담았습니다')
   }
 
-  const handleBuyNow = async () => {
+  const handleBuyNow = () => {
     if (stock === 0) return
-    await addToCart(product.productId, quantity)
-    navigate('/checkout')
+    navigate('/checkout', {
+      state: {
+        fromCart: false,
+        items: [
+          {
+            productId: product.productId,
+            name: product.name,
+            thumbnail: images[0] ?? '',
+            salePrice: product.salePrice,
+            quantity,
+          },
+        ],
+      },
+    })
   }
 
   const toggleHelpful = (reviewId: number) => {

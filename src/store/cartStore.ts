@@ -24,6 +24,7 @@ type CartState = {
   changeQuantity: (cartItemId: number, quantity: number) => Promise<void>
   removeItem: (cartItemId: number) => Promise<void>
   removeSelected: () => Promise<void>
+  clear: () => void
 }
 
 export const useCartStore = create<CartState>()((set, get) => ({
@@ -75,4 +76,7 @@ export const useCartStore = create<CartState>()((set, get) => ({
     await Promise.all(selectedIds.map((id) => deleteCartItem(id)))
     set({ items: get().items.filter((item) => !item.selected) })
   },
+
+  // 장바구니 결제 성공 후 서버에서 이미 비워졌을 때 로컬 상태도 맞춰준다
+  clear: () => set({ items: [] }),
 }))
