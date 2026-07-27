@@ -21,9 +21,9 @@ export type CheckoutState = {
 }
 
 const payMethods: { label: string; value: PaymentMethod }[] = [
-  { label: '신용·체크카드', value: 'CARD' },
-  { label: '카카오페이', value: 'KAKAO_PAY' },
   { label: '토스페이', value: 'TOSS_PAY' },
+  { label: '카카오페이', value: 'KAKAO_PAY' },
+  { label: '신용·체크카드', value: 'CARD' },
 ]
 
 function CheckoutPage() {

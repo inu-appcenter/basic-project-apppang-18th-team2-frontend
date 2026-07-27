@@ -1,28 +1,28 @@
 import { Search, X } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { getAutocomplete } from '@/api/search'
 
 const popularKeywords = ['겨울 패딩', '무선 이어폰', '가습기', '운동화', '캠핑 의자', '원피스', '키보드', '핸드크림']
-
-const allKeywords = [
-  '패딩 점퍼',
-  '패딩 조끼',
-  '패딩 코트 여성',
-  '무선 이어폰',
-  '무선 청소기',
-  '가습기',
-  '겨울 원피스',
-  '운동화 남성',
-  '캠핑 의자',
-  '기계식 키보드',
-]
 
 function SearchPage() {
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
   const [recent, setRecent] = useState(['겨울 패딩', '운동화', '에어팟', '원피스'])
+  const [suggestions, setSuggestions] = useState<string[]>([])
 
-  const suggestions = query ? allKeywords.filter((word) => word.includes(query)) : []
+  useEffect(() => {
+    if (!query.trim()) {
+      setSuggestions([])
+      return undefined
+    }
+    const timer = setTimeout(() => {
+      getAutocomplete(query)
+        .then(({ data }) => setSuggestions(data.data))
+        .catch(() => setSuggestions([]))
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [query])
 
   const search = (keyword: string) => {
     if (!keyword.trim()) return
