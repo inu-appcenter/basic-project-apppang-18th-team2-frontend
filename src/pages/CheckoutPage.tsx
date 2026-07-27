@@ -56,7 +56,7 @@ function CheckoutPage() {
   const address = addresses.find((a) => a.addressId === selectedAddressId) ?? null
 
   const productPrice = items.reduce((sum, item) => sum + item.salePrice * item.quantity, 0)
-  const shippingFee = 0
+  const shippingFee: number = 0
   const total = productPrice + shippingFee
 
   const handlePay = async () => {
