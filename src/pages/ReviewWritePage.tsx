@@ -1,15 +1,47 @@
-import { ChevronLeft, Plus, Star } from 'lucide-react'
+import { ChevronLeft, Star } from 'lucide-react'
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { createReview } from '@/api/review'
 
 const ratingLabels = ['', '별로예요', '그저 그래요', '보통이에요', '만족해요', '최고예요']
 
+type ReviewWriteState = {
+  orderId: number
+  productId: number
+  productName: string
+  option?: string
+}
+
 function ReviewWritePage() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const state = location.state as ReviewWriteState | null
+
   const [rating, setRating] = useState(4)
   const [content, setContent] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
 
-  const canSubmit = rating > 0 && content.trim().length >= 10
+  const canSubmit = rating > 0 && content.trim().length >= 10 && !!state
+
+  const handleSubmit = async () => {
+    if (!canSubmit || !state || submitting) return
+    setSubmitting(true)
+    setError('')
+    try {
+      await createReview({
+        orderId: state.orderId,
+        productId: state.productId,
+        rating,
+        content: content.trim(),
+      })
+      navigate(-1)
+    } catch {
+      setError('리뷰 등록에 실패했습니다. 다시 시도해주세요.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   return (
     <div className="flex min-h-screen justify-center bg-white">
@@ -24,8 +56,8 @@ function ReviewWritePage() {
         <section className="flex items-center gap-3 px-4 py-4">
           <div className="h-16 w-16 shrink-0 rounded-lg bg-gray-100" />
           <div>
-            <p className="text-body-7 text-black">남성 경량 구스다운 패딩</p>
-            <p className="text-body-10 text-gray-300">블랙 / L</p>
+            <p className="text-body-7 text-black">{state?.productName ?? '상품 정보 없음'}</p>
+            {state?.option && <p className="text-body-10 text-gray-300">{state.option}</p>}
           </div>
         </section>
 
@@ -49,26 +81,19 @@ function ReviewWritePage() {
           <h2 className="text-body-5 mb-2 text-black">상품평</h2>
           <textarea
             value={content}
-            onChange={(e) => setContent(e.target.value.slice(0, 500))}
+            onChange={(e) => setContent(e.target.value.slice(0, 1000))}
             placeholder="상품에 대한 솔직한 평가를 남겨주세요. (최소 10자 이상)"
             className="text-body-6 h-28 w-full resize-none rounded-xl border border-gray-300 p-3 outline-none placeholder:text-gray-300"
           />
-          <p className="text-body-11 mt-1 text-right text-gray-300">{content.length} / 500</p>
-        </section>
-
-        <section className="px-4 py-2">
-          <h2 className="text-body-5 mb-2 text-black">사진 첨부</h2>
-          <button type="button" className="flex h-20 w-20 flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-gray-300">
-            <Plus size={22} className="text-gray-300" />
-            <span className="text-body-11 text-gray-300">0/5</span>
-          </button>
+          <p className="text-body-11 mt-1 text-right text-gray-300">{content.length} / 1000</p>
         </section>
 
         <div className="fixed bottom-0 left-1/2 w-full max-w-120 -translate-x-1/2 border-t border-gray-100 bg-white p-4">
+          {error && <p className="text-body-11 mb-2 text-center text-red-300">{error}</p>}
           <button
             type="button"
-            disabled={!canSubmit}
-            onClick={() => navigate(-1)}
+            disabled={!canSubmit || submitting}
+            onClick={handleSubmit}
             className={`text-body-5 w-full rounded-lg py-3.5 text-white ${canSubmit ? 'bg-primary-200' : 'bg-gray-200'}`}
           >
             리뷰 작성 완료

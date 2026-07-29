@@ -73,7 +73,7 @@ function LoginPage() {
             className="text-body-1 flex-1 outline-none placeholder:text-gray-300"
           />
           <button type="button" onClick={() => setShowPassword((prev) => !prev)} className="shrink-0">
-            {showPassword ? (
+            {!showPassword ? (
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7E7E7E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94" />
                 <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19" />
@@ -114,20 +114,6 @@ function LoginPage() {
       <button type="button" onClick={() => navigate('/register')} className="flex justify-center items-center w-full py-3 border border-gray-200 text-base font-bold text-primary-200">
         회원가입
       </button>
-
-      <div className="flex justify-center items-center gap-1.5 w-full">
-        <span className="text-xs font-semibold text-black">사업자이신가요?</span>
-        <button type="button" onClick={() => navigate('/seller/login')} className="text-xs font-semibold text-primary-200">
-          판매자 로그인
-        </button>
-        <span className="text-xs font-semibold text-gray-300">·</span>
-        <button type="button" onClick={() => navigate('/seller/register')} className="flex items-center gap-1 text-xs font-semibold text-primary-200">
-          회원가입하기
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#346AFF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M4.5 3L7.5 6l-3 3" />
-          </svg>
-        </button>
-      </div>
 
       {/* 로그인 실패 토스트 */}
       {loginError && (

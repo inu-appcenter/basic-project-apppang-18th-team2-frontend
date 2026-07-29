@@ -1,4 +1,4 @@
-import { Camera, Gift, Globe, Grid3x3, Search, Shirt, ShoppingBag, Sparkles, Tag, Utensils, Watch, Zap } from 'lucide-react'
+import { Gift, Globe, Grid3x3, Search, Shirt, ShoppingBag, Sparkles, Tag, Utensils, Watch, Zap } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getBanners } from '@/api/banner'
@@ -59,7 +59,6 @@ function MainPage() {
         >
           <Search size={16} className="shrink-0 text-black" />
           <span className="text-body-3 flex-1 text-left text-gray-300">앱팡에서 검색하세요!</span>
-          <Camera size={24} className="shrink-0 text-black" />
         </button>
       </div>
 

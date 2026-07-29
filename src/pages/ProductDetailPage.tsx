@@ -2,20 +2,10 @@ import { ArrowLeft, ChevronRight, Heart, Minus, Plus, ThumbsUp } from 'lucide-re
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getProduct } from '@/api/product'
+import { getReviews, toggleReviewLike } from '@/api/review'
 import { useCartStore } from '@/store/cartStore'
 import { useWishlistStore } from '@/store/wishlistStore'
-import type { ProductDetailResponse } from '@/types/api'
-
-const REVIEW_TEMPLATES = [
-  { author: '김**', rating: 5, content: '생각보다 훨씬 좋아요. 배송도 빠르고 만족스러운 구매였습니다.' },
-  { author: '이**', rating: 4, content: '가격 대비 품질 괜찮습니다. 재구매 의사 있어요.' },
-  { author: '박**', rating: 5, content: '사진이랑 실물이랑 거의 똑같아요. 다음에 또 살 것 같아요.' },
-  { author: '최**', rating: 4, content: '무난하게 잘 쓰고 있습니다. 다만 배송이 조금 늦었어요.' },
-]
-
-function buildReviews() {
-  return REVIEW_TEMPLATES.map((review, i) => ({ id: i, ...review, helpful: (i + 1) * 3, helped: false }))
-}
+import type { ProductDetailResponse, Review } from '@/types/api'
 
 function ProductDetailPage() {
   const { productId } = useParams()
@@ -29,7 +19,7 @@ function ProductDetailPage() {
   const [notFound, setNotFound] = useState(false)
   const [currentImage, setCurrentImage] = useState(0)
   const [quantity, setQuantity] = useState(1)
-  const [reviews, setReviews] = useState(buildReviews)
+  const [reviews, setReviews] = useState<Review[]>([])
   const [showAllReviews, setShowAllReviews] = useState(false)
   const [toast, setToast] = useState('')
   const startX = useRef(0)
@@ -39,13 +29,17 @@ function ProductDetailPage() {
     setNotFound(false)
     setCurrentImage(0)
     setQuantity(1)
-    setReviews(buildReviews())
+    setReviews([])
     setShowAllReviews(false)
 
     getProduct(Number(productId))
       .then(({ data }) => setProduct(data.data))
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false))
+
+    getReviews(Number(productId))
+      .then(({ data }) => setReviews(data.data.reviews))
+      .catch(() => {})
   }, [productId])
 
   useEffect(() => {
@@ -117,13 +111,17 @@ function ProductDetailPage() {
   }
 
   const toggleHelpful = (reviewId: number) => {
-    setReviews((prev) =>
-      prev.map((review) =>
-        review.id === reviewId
-          ? { ...review, helpful: review.helpful + (review.helped ? -1 : 1), helped: !review.helped }
-          : review,
-      ),
-    )
+    toggleReviewLike(reviewId)
+      .then(({ data }) => {
+        setReviews((prev) =>
+          prev.map((review) =>
+            review.reviewId === reviewId
+              ? { ...review, helpCount: data.data.helpCount, helped: data.data.liked }
+              : review,
+          ),
+        )
+      })
+      .catch(() => {})
   }
 
   const visibleReviews = showAllReviews ? reviews : reviews.slice(0, 2)
@@ -222,22 +220,26 @@ function ProductDetailPage() {
         </div>
 
         <ul className="mt-3">
-          {visibleReviews.map((review) => (
-            <li key={review.id} className="border-b border-gray-100 py-4 last:border-none">
-              <div className="flex items-center justify-between">
-                <p className="text-body-9 text-black">{review.author}</p>
-                <p className="text-body-11 text-black">★ {review.rating}</p>
-              </div>
-              <p className="text-body-8 mt-1.5 text-black">{review.content}</p>
-              <button
-                type="button"
-                onClick={() => toggleHelpful(review.id)}
-                className={`text-body-11 mt-2 flex items-center gap-1 ${review.helped ? 'text-primary-200' : 'text-gray-300'}`}
-              >
-                <ThumbsUp size={12} /> 도움이 돼요 {review.helpful}
-              </button>
-            </li>
-          ))}
+          {visibleReviews.length === 0 ? (
+            <li className="text-body-9 py-6 text-center text-gray-300">아직 작성된 리뷰가 없습니다</li>
+          ) : (
+            visibleReviews.map((review) => (
+              <li key={review.reviewId} className="border-b border-gray-100 py-4 last:border-none">
+                <div className="flex items-center justify-between">
+                  <p className="text-body-9 text-black">{review.userName}</p>
+                  <p className="text-body-11 text-black">★ {review.rating}</p>
+                </div>
+                <p className="text-body-8 mt-1.5 text-black">{review.content}</p>
+                <button
+                  type="button"
+                  onClick={() => toggleHelpful(review.reviewId)}
+                  className={`text-body-11 mt-2 flex items-center gap-1 ${review.helped ? 'text-primary-200' : 'text-gray-300'}`}
+                >
+                  <ThumbsUp size={12} /> 도움이 돼요 {review.helpCount}
+                </button>
+              </li>
+            ))
+          )}
         </ul>
       </div>
 

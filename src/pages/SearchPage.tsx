@@ -2,13 +2,17 @@ import { Search, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAutocomplete } from '@/api/search'
+import { useSearchStore } from '@/store/searchStore'
 
 const popularKeywords = ['겨울 패딩', '무선 이어폰', '가습기', '운동화', '캠핑 의자', '원피스', '키보드', '핸드크림']
 
 function SearchPage() {
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
-  const [recent, setRecent] = useState(['겨울 패딩', '운동화', '에어팟', '원피스'])
+  const recent = useSearchStore((state) => state.recent)
+  const addRecent = useSearchStore((state) => state.addRecent)
+  const removeRecent = useSearchStore((state) => state.removeRecent)
+  const clearRecent = useSearchStore((state) => state.clearRecent)
   const [suggestions, setSuggestions] = useState<string[]>([])
 
   useEffect(() => {
@@ -26,12 +30,8 @@ function SearchPage() {
 
   const search = (keyword: string) => {
     if (!keyword.trim()) return
-    setRecent([keyword, ...recent.filter((word) => word !== keyword)])
+    addRecent(keyword)
     navigate(`/products?keyword=${encodeURIComponent(keyword)}`)
-  }
-
-  const removeRecent = (keyword: string) => {
-    setRecent(recent.filter((word) => word !== keyword))
   }
 
   return (
@@ -91,7 +91,7 @@ function SearchPage() {
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-body-5 text-black">최근 검색어</h2>
               {recent.length > 0 && (
-                <button type="button" onClick={() => setRecent([])} className="text-body-9 text-gray-300">
+                <button type="button" onClick={clearRecent} className="text-body-9 text-gray-300">
                   전체 삭제
                 </button>
               )}

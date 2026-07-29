@@ -151,6 +151,17 @@ export type Review = {
   helped: boolean
 }
 
+export type ReviewListResponse = {
+  reviews: Review[]
+  page: number
+  hasNext: boolean
+}
+
+export type ReviewLikeResponse = {
+  liked: boolean
+  helpCount: number
+}
+
 // BANNER
 export type Banner = {
   bannerId: number

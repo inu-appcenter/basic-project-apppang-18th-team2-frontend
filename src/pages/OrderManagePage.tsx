@@ -58,7 +58,15 @@ function OrderManagePage() {
         </section>
 
         <div className="px-4 pb-4">
-          <button type="button" onClick={() => navigate('/review/write')} className="text-body-5 w-full rounded-lg border border-black py-3.5 text-black">
+          <button
+            type="button"
+            onClick={() =>
+              navigate('/review/write', {
+                state: { orderId: Number(orderId), productId: order.productId, productName: order.name, option: order.option },
+              })
+            }
+            className="text-body-5 w-full rounded-lg border border-black py-3.5 text-black"
+          >
             리뷰 작성하기
           </button>
         </div>

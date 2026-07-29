@@ -198,7 +198,7 @@ function RegisterPage() {
               className="text-body-6 flex-1 outline-none placeholder:text-gray-300"
             />
             <button type="button" onClick={() => setShowPassword((v) => !v)} aria-label="비밀번호 표시">
-              {showPassword ? <EyeOff size={20} className="text-gray-300" /> : <Eye size={20} className="text-gray-300" />}
+              {!showPassword ? <EyeOff size={20} className="text-gray-300" /> : <Eye size={20} className="text-gray-300" />}
             </button>
           </div>
           {errors.password && <p className="text-body-10 text-red-300">{errors.password}</p>}

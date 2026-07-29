@@ -2,8 +2,24 @@ import { Loader2 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getBanners } from '@/api/banner'
-import { getProducts } from '@/api/product'
+import { getProducts, type ProductListParams } from '@/api/product'
 import type { Banner, Product } from '@/types/api'
+
+// categoryId ↔ 카테고리 이름 매핑 도메인이 백엔드에 아직 없어서,
+// 실제 DB에 있는 categoryId(1~5)/discountOnly/sort로 확인 가능한 것만 필터링하고
+// 나머지(패션/뷰티/골드박스/자주 산 상품/해외직구)는 대응하는 데이터가 없어 전체 상품을 보여준다
+const CATEGORY_CONFIG: Record<string, { title: string; params: Partial<ProductListParams> }> = {
+  frequent: { title: '자주 산 상품', params: {} },
+  best: { title: '베스트', params: { sort: 'rating' } },
+  new: { title: '신상품', params: { sort: 'latest' } },
+  deal: { title: '오늘특가', params: { discountOnly: true } },
+  goldbox: { title: '골드박스', params: {} },
+  fashion: { title: '패션', params: {} },
+  beauty: { title: '뷰티', params: {} },
+  food: { title: '식품', params: { categoryId: 4 } },
+  all: { title: '전체', params: {} },
+  global: { title: '해외직구', params: {} },
+}
 
 function CategoryPage() {
   const navigate = useNavigate()
@@ -30,14 +46,16 @@ function CategoryPage() {
     return () => clearInterval(timer)
   }, [banners.length])
 
-  // categoryId ↔ 카테고리 슬러그 매핑이 백엔드에 아직 없어 임시로 전체 상품을 보여준다
+  const config = CATEGORY_CONFIG[categoryName ?? ''] ?? { title: categoryName ?? '카테고리', params: {} }
+
   useEffect(() => {
     setLoading(true)
     setFailed(false)
-    getProducts({ sort: 'rating', page: 0 })
+    getProducts({ page: 0, ...config.params })
       .then(({ data }) => setItems(data.data.products))
       .catch(() => setFailed(true))
       .finally(() => setLoading(false))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categoryName])
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -53,7 +71,7 @@ function CategoryPage() {
 
   return (
     <div className="bg-white">
-      <h1 className="text-title-5 px-4 py-3 text-black">{categoryName ?? '패션'}</h1>
+      <h1 className="text-title-5 px-4 py-3 text-black">{config.title}</h1>
 
       {banners.length > 0 && (
         <div
