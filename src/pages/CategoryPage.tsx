@@ -5,20 +5,18 @@ import { getBanners } from '@/api/banner'
 import { getProducts, type ProductListParams } from '@/api/product'
 import type { Banner, Product } from '@/types/api'
 
-// 카테고리 테이블이 백엔드에 아직 없어서(추가 예정, 추가되면 DB 초기화됨) categoryId로는 필터링 못함.
-// "오늘특가"만 discountOnly 쿼리로 실제 필터링되고, 나머지는 라벨만 맞춰두고 전체 상품을 보여준다.
-// 카테고리 테이블 생기면 각 슬러그에 실제 categoryId만 채우면 됨.
+// 오늘특가만 discountOnly 쿼리로 처리, 나머지 9개는 백엔드 카테고리 테이블의 categoryId로 실제 필터링
 const CATEGORY_CONFIG: Record<string, { title: string; params: Partial<ProductListParams> }> = {
   deal: { title: '오늘특가', params: { discountOnly: true } },
-  life: { title: '생활용품', params: {} },
-  digital: { title: '가전디지털', params: {} },
-  food: { title: '식품', params: {} },
-  fashion: { title: '패션의류', params: {} },
-  book: { title: '도서', params: {} },
-  stationery: { title: '문구', params: {} },
-  kitchen: { title: '주방용품', params: {} },
-  beauty: { title: '뷰티', params: {} },
-  health: { title: '헬스/건강식품', params: {} },
+  life: { title: '생활용품', params: { categoryId: 1 } },
+  digital: { title: '가전디지털', params: { categoryId: 2 } },
+  food: { title: '식품', params: { categoryId: 3 } },
+  fashion: { title: '패션의류', params: { categoryId: 4 } },
+  book: { title: '도서', params: { categoryId: 5 } },
+  stationery: { title: '문구', params: { categoryId: 6 } },
+  kitchen: { title: '주방용품', params: { categoryId: 7 } },
+  beauty: { title: '뷰티', params: { categoryId: 8 } },
+  health: { title: '헬스/건강식품', params: { categoryId: 9 } },
 }
 
 function CategoryPage() {

@@ -10,12 +10,20 @@ const SORT_OPTIONS = [
   { value: 'priceAsc', label: '최저가순' },
 ] as const
 
+// 배너의 targetUrl(예: /products?event=summer)에 대응하는 표시용 이벤트명
+const EVENT_LABELS: Record<string, string> = {
+  summer: '여름 특가',
+  'time-sale': '타임 세일',
+  best: '베스트 셀러',
+}
+
 type SortValue = (typeof SORT_OPTIONS)[number]['value']
 
 function ProductListPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const keyword = searchParams.get('keyword') ?? ''
+  const event = searchParams.get('event') ?? ''
 
   const [sort, setSort] = useState<SortValue>('rating')
   const [sortOpen, setSortOpen] = useState(false)
@@ -30,7 +38,7 @@ function ProductListPage() {
   useEffect(() => {
     setLoading(true)
     setFailed(false)
-    getProducts({ keyword: keyword || undefined, sort, page: 0 })
+    getProducts({ keyword: keyword || undefined, event: event || undefined, sort, page: 0 })
       .then(({ data }) => {
         setItems(data.data.products)
         setPage(0)
@@ -38,7 +46,7 @@ function ProductListPage() {
       })
       .catch(() => setFailed(true))
       .finally(() => setLoading(false))
-  }, [keyword, sort])
+  }, [keyword, event, sort])
 
   useEffect(() => {
     const target = sentinelRef.current
@@ -48,7 +56,7 @@ function ProductListPage() {
       if (!entry.isIntersecting) return
       const nextPage = page + 1
       setLoading(true)
-      getProducts({ keyword: keyword || undefined, sort, page: nextPage })
+      getProducts({ keyword: keyword || undefined, event: event || undefined, sort, page: nextPage })
         .then(({ data }) => {
           setItems((prev) => [...prev, ...data.data.products])
           setPage(nextPage)
@@ -60,7 +68,7 @@ function ProductListPage() {
     observer.observe(target)
 
     return () => observer.disconnect()
-  }, [hasNext, loading, page, keyword, sort])
+  }, [hasNext, loading, page, keyword, event, sort])
 
   return (
     <div className="bg-white">
@@ -82,6 +90,7 @@ function ProductListPage() {
       </div>
 
       {keyword && <h1 className="text-title-5 px-4 pb-2 text-black">&apos;{keyword}&apos; 검색결과</h1>}
+      {!keyword && event && <h1 className="text-title-5 px-4 pb-2 text-black">{EVENT_LABELS[event] ?? event}</h1>}
 
       {/* 개수 + 정렬 */}
       <div className="flex items-center justify-between px-4 pb-2">
