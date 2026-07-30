@@ -103,18 +103,66 @@ export type CartResponse = {
 }
 
 // ORDER
-export type OrderStatus = 'PAID' | 'PREPARING' | 'DELIVERING' | 'DELIVERED' | 'CANCELLED'
-export type PaymentStatus = 'PAID' | 'PENDING' | 'CANCELLED'
+export type OrderStatus = 'PENDING' | 'PAID' | 'PREPARING' | 'DELIVERING' | 'DELIVERED' | 'CANCELED'
 
 export type OrderSummary = {
   orderId: number
   orderedAt: string
   orderStatus: OrderStatus
-  paymentStatus: PaymentStatus
+  paymentStatus: string | null
   totalPrice: number
   thumbnail: string
   productName: string
   itemCount: number
+}
+
+export type OrderListResponse = {
+  orders: OrderSummary[]
+  page: number
+  hasNext: boolean
+}
+
+export type OrderDetailResponse = {
+  orderId: number
+  orderedAt: string
+  orderStatus: OrderStatus
+  payment: {
+    paymentMethod: string | null
+    paymentStatus: string | null
+    paidAt: string | null
+  }
+  receiver: {
+    name: string
+    phone: string
+  }
+  address: {
+    roadAddress: string
+    detailAddress: string
+  }
+  items: {
+    productId: number
+    productName: string
+    thumbnail: string
+    originalPrice: number
+    discountRate: number
+    salePrice: number
+    quantity: number
+    totalPrice: number
+  }[]
+  summary: {
+    productPrice: number
+    deliveryFee: number
+    discountPrice: number
+    totalPrice: number
+  }
+}
+
+export type DeliveryResponse = {
+  orderId: number
+  status: OrderStatus
+  trackingNumber: string
+  deliveryCompany: string
+  estimatedArrival: string
 }
 
 export type OrderItem = {

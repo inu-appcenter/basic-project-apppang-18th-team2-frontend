@@ -70,7 +70,7 @@ function CheckoutPage() {
       )
       await requestPayment(orderData.data.orderId, payMethods[selectedPay].value, fromCart)
       if (fromCart) clearCart()
-      navigate('/order-complete')
+      navigate('/order-complete', { state: { orderId: orderData.data.orderId } })
     } catch {
       setError('결제에 실패했습니다. 다시 시도해주세요.')
     } finally {
