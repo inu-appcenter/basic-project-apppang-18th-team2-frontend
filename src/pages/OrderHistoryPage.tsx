@@ -2,16 +2,8 @@ import { ChevronRight, Loader2, ShoppingCart } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getMyOrders } from '@/api/order'
-import type { OrderStatus, OrderSummary } from '@/types/api'
-
-const STATUS_LABELS: Record<OrderStatus, string> = {
-  PENDING: '결제 대기',
-  PAID: '결제 완료',
-  PREPARING: '상품 준비중',
-  DELIVERING: '배송중',
-  DELIVERED: '배송 완료',
-  CANCELED: '주문 취소',
-}
+import { ORDER_STATUS_LABELS } from '@/constants/order'
+import type { OrderSummary } from '@/types/api'
 
 function OrderHistoryPage() {
   const navigate = useNavigate()
@@ -63,7 +55,7 @@ function OrderHistoryPage() {
             <div key={order.orderId} className="rounded-2xl border border-gray-100 p-4">
               <div className="mb-3 flex items-center justify-between">
                 <span className="text-body-7 text-black">{new Date(order.orderedAt).toLocaleDateString('ko-KR')} 주문</span>
-                <span className="text-body-8 text-primary-200">{STATUS_LABELS[order.orderStatus]}</span>
+                <span className="text-body-8 text-primary-200">{ORDER_STATUS_LABELS[order.orderStatus]}</span>
               </div>
 
               <div className="flex gap-3">

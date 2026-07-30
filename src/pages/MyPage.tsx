@@ -1,17 +1,13 @@
 import { ChevronRight, Heart, LogIn, Settings, ShoppingBag, ShoppingCart, User } from 'lucide-react'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { logout as logoutRequest } from '@/api/auth'
+import { getMyOrders } from '@/api/order'
 import { getWishlist } from '@/api/wishlist'
+import { ORDER_STATUS_LABELS } from '@/constants/order'
 import { useAuthStore } from '@/store/authStore'
 import { useWishlistStore } from '@/store/wishlistStore'
-
-const recentOrders = [
-  { id: 1, productId: 101, status: '배송 완료' },
-  { id: 2, productId: 102, status: '배송중' },
-  { id: 3, productId: 103, status: '상품 준비중' },
-  { id: 4, productId: 104, status: '결제 완료' },
-]
+import type { OrderSummary } from '@/types/api'
 
 function maskName(name: string) {
   if (name.length <= 2) return name[0] + '*'
@@ -29,6 +25,8 @@ function MyPage() {
   const logout = useAuthStore((state) => state.logout)
   const wishlistCount = useWishlistStore((state) => state.items.length)
   const setWishlistItems = useWishlistStore((state) => state.setItems)
+  const [orderCount, setOrderCount] = useState(0)
+  const [recentOrders, setRecentOrders] = useState<OrderSummary[]>([])
 
   useEffect(() => {
     if (!user) return
@@ -47,6 +45,32 @@ function MyPage() {
       })
       .catch(() => {})
   }, [user, setWishlistItems])
+
+  useEffect(() => {
+    if (!user) return
+    let cancelled = false
+
+    // 목록 API가 페이지당 개수만 주기 때문에 전체 건수는 마지막 페이지까지 이어서 조회해 합산한다
+    async function loadOrders() {
+      const all: OrderSummary[] = []
+      let page = 1
+      while (true) {
+        const { data } = await getMyOrders(page)
+        all.push(...data.data.orders)
+        if (!data.data.hasNext) break
+        page += 1
+      }
+      if (!cancelled) {
+        setOrderCount(all.length)
+        setRecentOrders(all.slice(0, 4))
+      }
+    }
+
+    loadOrders().catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [user])
 
   // 로그인 안 한 상태
   if (!user) {
@@ -84,7 +108,7 @@ function MyPage() {
       <div className="grid grid-cols-2 gap-3 px-4">
         <button type="button" onClick={() => navigate('/orders')} className="flex flex-col items-center gap-1 rounded-xl bg-gray-100 py-4">
           <ShoppingBag size={20} className="text-primary-200" />
-          <span className="text-title-5 text-black">12</span>
+          <span className="text-title-5 text-black">{orderCount}</span>
           <span className="text-body-9 text-gray-300">주문 내역</span>
         </button>
         <button type="button" onClick={() => navigate('/wishlist')} className="flex flex-col items-center gap-1 rounded-xl bg-gray-100 py-4">
@@ -104,24 +128,34 @@ function MyPage() {
             <ChevronRight size={14} />
           </button>
         </div>
-        <div className="flex gap-3 overflow-x-auto pb-1">
-          {recentOrders.map((order) => (
-            <div key={order.id} className="w-24 shrink-0">
-              <div className="relative aspect-square w-full">
-                <button type="button" onClick={() => navigate(`/products/${order.productId}`)} className="h-full w-full rounded-xl bg-gray-100" />
-                <button
-                  type="button"
-                  onClick={() => navigate('/cart')}
-                  aria-label="장바구니 담기"
-                  className="absolute top-1.5 right-1.5 flex h-6 w-6 items-center justify-center rounded-full border border-gray-200 bg-white"
-                >
-                  <ShoppingCart size={13} className="text-black" />
-                </button>
+        {recentOrders.length === 0 ? (
+          <p className="text-body-9 py-6 text-center text-gray-300">주문 내역이 없습니다</p>
+        ) : (
+          <div className="flex gap-3 overflow-x-auto pb-1">
+            {recentOrders.map((order) => (
+              <div key={order.orderId} className="w-24 shrink-0">
+                <div className="relative aspect-square w-full">
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/orders/${order.orderId}`)}
+                    className="h-full w-full overflow-hidden rounded-xl bg-gray-100"
+                  >
+                    {order.thumbnail && <img src={order.thumbnail} alt={order.productName} className="h-full w-full object-cover" />}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/cart')}
+                    aria-label="장바구니 담기"
+                    className="absolute top-1.5 right-1.5 flex h-6 w-6 items-center justify-center rounded-full border border-gray-200 bg-white"
+                  >
+                    <ShoppingCart size={13} className="text-black" />
+                  </button>
+                </div>
+                <p className="text-body-10 mt-1.5 text-center text-black">{ORDER_STATUS_LABELS[order.orderStatus]}</p>
               </div>
-              <p className="text-body-10 mt-1.5 text-center text-black">{order.status}</p>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </section>
 
       <div className="my-5 h-2 bg-gray-100" />
