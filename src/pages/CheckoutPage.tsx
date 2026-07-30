@@ -47,7 +47,7 @@ function CheckoutPage() {
       .then(({ data }) => {
         const list = data.data
         setAddresses(list)
-        setSelectedAddressId((list.find((a) => a.default) ?? list[0])?.addressId ?? null)
+        setSelectedAddressId((list.find((a) => a.isDefault) ?? list[0])?.addressId ?? null)
       })
       .catch(() => {})
       .finally(() => setAddressLoading(false))
@@ -104,7 +104,7 @@ function CheckoutPage() {
             <>
               <div className="flex items-center gap-2">
                 <span className="text-body-7 text-black">{address.receiver}</span>
-                {address.default && (
+                {address.isDefault && (
                   <span className="text-body-11 rounded-full bg-gray-100 px-2 py-0.5 text-gray-300">기본배송지</span>
                 )}
               </div>
@@ -217,7 +217,7 @@ function CheckoutPage() {
                       <span className="flex-1">
                         <span className="flex items-center gap-2">
                           <span className="text-body-7 text-black">{a.receiver}</span>
-                          {a.default && (
+                          {a.isDefault && (
                             <span className="text-body-11 rounded-full bg-gray-100 px-2 py-0.5 text-gray-300">기본배송지</span>
                           )}
                         </span>

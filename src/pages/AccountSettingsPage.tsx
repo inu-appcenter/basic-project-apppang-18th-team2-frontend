@@ -294,15 +294,15 @@ function AccountSettingsPage() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="text-body-7 text-black">{a.receiver}</span>
-                      {a.default && <span className="text-body-11 rounded-full bg-gray-100 px-2 py-0.5 text-gray-300">기본배송지</span>}
+                      {a.isDefault && <span className="text-body-11 rounded-full bg-gray-100 px-2 py-0.5 text-gray-300">기본배송지</span>}
                     </div>
                     <div className="flex items-center gap-2">
-                      {!a.default && (
+                      {!a.isDefault && (
                         <button type="button" onClick={() => handleSetDefault(a.addressId)} className="text-body-11 flex items-center gap-0.5 text-gray-300">
                           <Check size={12} /> 기본으로 설정
                         </button>
                       )}
-                      {!a.default && (
+                      {!a.isDefault && (
                         <button type="button" onClick={() => handleDeleteAddress(a.addressId)} aria-label="배송지 삭제" className="text-gray-300">
                           <X size={16} />
                         </button>
