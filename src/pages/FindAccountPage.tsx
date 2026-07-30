@@ -2,7 +2,7 @@ import axios from 'axios'
 import { ChevronLeft } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { findId } from '@/api/auth'
+import { findId, requestPasswordReset } from '@/api/auth'
 
 function maskEmail(email: string) {
   const [id, domain] = email.split('@')
@@ -17,17 +17,26 @@ function FindAccountPage() {
   const [email, setEmail] = useState('')
   const [foundEmail, setFoundEmail] = useState('')
   const [findError, setFindError] = useState('')
+  const [resetSent, setResetSent] = useState(false)
 
   const canSubmit = tab === 'id' ? name && phone : name && email
 
   const handleSubmit = async () => {
+    setFindError('')
+    setFoundEmail('')
+    setResetSent(false)
+
     if (tab === 'password') {
-      navigate('/reset-password')
+      try {
+        await requestPasswordReset(email)
+        setResetSent(true)
+      } catch (error) {
+        const message = axios.isAxiosError(error) ? error.response?.data?.message : undefined
+        setFindError(message ?? '가입된 이메일을 확인해주세요.')
+      }
       return
     }
 
-    setFindError('')
-    setFoundEmail('')
     try {
       const { data } = await findId({ name, phone })
       setFoundEmail(data.data.email)
@@ -104,12 +113,22 @@ function FindAccountPage() {
           {tab === 'id' ? '아이디 찾기' : '비밀번호 찾기'}
         </button>
 
-        {tab === 'id' && findError && <p className="text-body-10 text-red-300">{findError}</p>}
+        {findError && <p className="text-body-10 text-red-300">{findError}</p>}
 
         {tab === 'id' && foundEmail && (
           <div className="mt-2 rounded-xl bg-gray-100 p-5">
             <p className="text-body-9 text-gray-300">회원님의 아이디는</p>
             <p className="text-body-3 mt-1 text-black">{maskEmail(foundEmail)}</p>
+          </div>
+        )}
+
+        {tab === 'password' && resetSent && (
+          <div className="mt-2 rounded-xl bg-gray-100 p-5">
+            <p className="text-body-9 text-center text-gray-300">
+              입력하신 이메일로 비밀번호 재설정 링크를 보냈어요.
+              <br />
+              메일함을 확인해주세요.
+            </p>
           </div>
         )}
       </div>

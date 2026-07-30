@@ -5,20 +5,20 @@ import { getBanners } from '@/api/banner'
 import { getProducts, type ProductListParams } from '@/api/product'
 import type { Banner, Product } from '@/types/api'
 
-// categoryId ↔ 카테고리 이름 매핑 도메인이 백엔드에 아직 없어서,
-// 실제 DB에 있는 categoryId(1~5)/discountOnly/sort로 확인 가능한 것만 필터링하고
-// 나머지(패션/뷰티/골드박스/자주 산 상품/해외직구)는 대응하는 데이터가 없어 전체 상품을 보여준다
+// 카테고리 테이블이 백엔드에 아직 없어서(추가 예정, 추가되면 DB 초기화됨) categoryId로는 필터링 못함.
+// "오늘특가"만 discountOnly 쿼리로 실제 필터링되고, 나머지는 라벨만 맞춰두고 전체 상품을 보여준다.
+// 카테고리 테이블 생기면 각 슬러그에 실제 categoryId만 채우면 됨.
 const CATEGORY_CONFIG: Record<string, { title: string; params: Partial<ProductListParams> }> = {
-  frequent: { title: '자주 산 상품', params: {} },
-  best: { title: '베스트', params: { sort: 'rating' } },
-  new: { title: '신상품', params: { sort: 'latest' } },
   deal: { title: '오늘특가', params: { discountOnly: true } },
-  goldbox: { title: '골드박스', params: {} },
-  fashion: { title: '패션', params: {} },
+  life: { title: '생활용품', params: {} },
+  digital: { title: '가전디지털', params: {} },
+  food: { title: '식품', params: {} },
+  fashion: { title: '패션의류', params: {} },
+  book: { title: '도서', params: {} },
+  stationery: { title: '문구', params: {} },
+  kitchen: { title: '주방용품', params: {} },
   beauty: { title: '뷰티', params: {} },
-  food: { title: '식품', params: { categoryId: 4 } },
-  all: { title: '전체', params: {} },
-  global: { title: '해외직구', params: {} },
+  health: { title: '헬스/건강식품', params: {} },
 }
 
 function CategoryPage() {

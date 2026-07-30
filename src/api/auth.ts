@@ -20,3 +20,11 @@ export function logout() {
 export function findId(payload: FindIdRequest) {
   return instance.post<ApiResponse<FindIdResponse>>('/api/auth/find-id', payload)
 }
+
+export function requestPasswordReset(email: string) {
+  return instance.post<ApiResponse<string>>('/api/auth/password-reset/request', { email })
+}
+
+export function confirmPasswordReset(token: string, newPassword: string) {
+  return instance.patch<ApiResponse<string>>('/api/auth/password-reset', { token, newPassword })
+}

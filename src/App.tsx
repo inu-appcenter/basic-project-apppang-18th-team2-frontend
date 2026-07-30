@@ -45,6 +45,8 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/find-account" element={<FindAccountPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+          {/* 백엔드가 재설정 이메일 링크를 /password-reset?token=... 으로 생성해서 별칭 라우트 추가 */}
+          <Route path="/password-reset" element={<ResetPasswordPage />} />
         </Route>
 
         <Route path="/checkout" element={<CheckoutPage />} />

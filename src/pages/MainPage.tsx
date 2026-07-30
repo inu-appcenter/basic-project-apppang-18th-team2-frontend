@@ -1,26 +1,40 @@
-import { Gift, Globe, Grid3x3, Search, Shirt, ShoppingBag, Sparkles, Tag, Utensils, Watch, Zap } from 'lucide-react'
+import {
+  BookOpen,
+  CookingPot,
+  Dumbbell,
+  PenTool,
+  Search,
+  Shirt,
+  ShoppingBag,
+  Sparkles,
+  Tv,
+  Utensils,
+  Zap,
+} from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getBanners } from '@/api/banner'
 import type { Banner } from '@/types/api'
 
+// 특가 1개 + 나머지 9개 카테고리. categoryId 실매핑은 백엔드 카테고리 테이블 생성 후 연결 예정
 const categories = [
-  { label: '자주 산 상품', path: '/category/frequent', icon: <ShoppingBag size={36} /> },
-  { label: '베스트', path: '/category/best', icon: <Sparkles size={36} /> },
-  { label: '신상품', path: '/category/new', icon: <Tag size={36} /> },
   { label: '오늘특가', path: '/category/deal', icon: <Zap size={36} /> },
-  { label: '골드박스', path: '/category/goldbox', icon: <Gift size={36} /> },
-  { label: '패션', path: '/category/fashion', icon: <Shirt size={36} /> },
-  { label: '뷰티', path: '/category/beauty', icon: <Watch size={36} /> },
+  { label: '생활용품', path: '/category/life', icon: <ShoppingBag size={36} /> },
+  { label: '가전디지털', path: '/category/digital', icon: <Tv size={36} /> },
   { label: '식품', path: '/category/food', icon: <Utensils size={36} /> },
-  { label: '전체', path: '/category/all', icon: <Grid3x3 size={36} /> },
-  { label: '해외직구', path: '/category/global', icon: <Globe size={36} /> },
+  { label: '패션의류', path: '/category/fashion', icon: <Shirt size={36} /> },
+  { label: '도서', path: '/category/book', icon: <BookOpen size={36} /> },
+  { label: '문구', path: '/category/stationery', icon: <PenTool size={36} /> },
+  { label: '주방용품', path: '/category/kitchen', icon: <CookingPot size={36} /> },
+  { label: '뷰티', path: '/category/beauty', icon: <Sparkles size={36} /> },
+  { label: '헬스/건강식품', path: '/category/health', icon: <Dumbbell size={36} /> },
 ]
 
 function MainPage() {
   const navigate = useNavigate()
   const [banners, setBanners] = useState<Banner[]>([])
   const [current, setCurrent] = useState(0)
+  const [resetSignal, setResetSignal] = useState(0)
   const startX = useRef(0)
 
   useEffect(() => {
@@ -35,7 +49,13 @@ function MainPage() {
       setCurrent((prev) => (prev + 1) % banners.length)
     }, 3000)
     return () => clearInterval(timer)
-  }, [banners.length])
+    // resetSignal이 바뀔 때마다(수동 조작 시) 자동 전환 타이머를 처음부터 다시 시작한다
+  }, [banners.length, resetSignal])
+
+  const goToSlide = (i: number) => {
+    setCurrent(i)
+    setResetSignal((s) => s + 1)
+  }
 
   const handleTouchStart = (e: React.TouchEvent) => {
     startX.current = e.touches[0].clientX
@@ -44,8 +64,8 @@ function MainPage() {
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (banners.length <= 1) return
     const diff = startX.current - e.changedTouches[0].clientX
-    if (diff > 50) setCurrent((prev) => (prev + 1) % banners.length)
-    else if (diff < -50) setCurrent((prev) => (prev - 1 + banners.length) % banners.length)
+    if (diff > 50) goToSlide((current + 1) % banners.length)
+    else if (diff < -50) goToSlide((current - 1 + banners.length) % banners.length)
   }
 
   return (
@@ -82,7 +102,7 @@ function MainPage() {
               <button
                 key={banner.bannerId}
                 type="button"
-                onClick={() => setCurrent(i)}
+                onClick={() => goToSlide(i)}
                 aria-label={`배너 ${i + 1}`}
                 className={`h-2 w-2 rounded-full ${i === current ? 'bg-black' : 'bg-gray-200'}`}
               />

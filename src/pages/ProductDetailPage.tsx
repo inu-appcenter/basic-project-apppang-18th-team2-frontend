@@ -1,5 +1,5 @@
 import { ArrowLeft, ChevronRight, Heart, Minus, Plus, ThumbsUp } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getProduct } from '@/api/product'
 import { getReviews, toggleReviewLike } from '@/api/review'
@@ -17,17 +17,14 @@ function ProductDetailPage() {
   const wished = useWishlistStore((state) => state.items.some((item) => item.id === product?.productId))
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
-  const [currentImage, setCurrentImage] = useState(0)
   const [quantity, setQuantity] = useState(1)
   const [reviews, setReviews] = useState<Review[]>([])
   const [showAllReviews, setShowAllReviews] = useState(false)
   const [toast, setToast] = useState('')
-  const startX = useRef(0)
 
   useEffect(() => {
     setLoading(true)
     setNotFound(false)
-    setCurrentImage(0)
     setQuantity(1)
     setReviews([])
     setShowAllReviews(false)
@@ -63,17 +60,9 @@ function ProductDetailPage() {
 
   const { stock } = product
   const images = product.images.filter(Boolean)
-  const imageCount = Math.max(images.length, 1)
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    startX.current = e.touches[0].clientX
-  }
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    const diff = startX.current - e.changedTouches[0].clientX
-    if (diff > 50) setCurrentImage((i) => Math.min(i + 1, imageCount - 1))
-    else if (diff < -50) setCurrentImage((i) => Math.max(i - 1, 0))
-  }
+  // 백엔드가 항상 [대표 이미지, 상세 이미지] 순서로 내려줌
+  const mainImage = images[0]
+  const subImages = images.slice(1)
 
   const handleToggleWish = () => {
     toggleWish({
@@ -101,7 +90,7 @@ function ProductDetailPage() {
           {
             productId: product.productId,
             name: product.name,
-            thumbnail: images[0] ?? '',
+            thumbnail: mainImage ?? '',
             salePrice: product.salePrice,
             quantity,
           },
@@ -137,23 +126,12 @@ function ProductDetailPage() {
         <ArrowLeft size={20} />
       </button>
 
-      {/* 이미지 슬라이더 */}
-      <div className="relative aspect-square w-full overflow-hidden bg-gray-100" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-        <div className="flex h-full transition-transform duration-300" style={{ transform: `translateX(-${currentImage * 100}%)` }}>
-          {Array.from({ length: imageCount }).map((_, i) => (
-            <div key={i} className={`flex h-full min-w-full items-center justify-center ${i % 2 === 0 ? 'bg-primary-100' : 'bg-secondary-100'}`}>
-              {images[i] && <img src={images[i]} alt={`${product.name} 이미지 ${i + 1}`} className="h-full w-full object-cover" />}
-              {stock === 0 && i === 0 && (
-                <span className="text-body-5 rounded-full bg-black/60 px-4 py-2 text-white">품절된 상품입니다</span>
-              )}
-            </div>
-          ))}
-        </div>
-        <div className="absolute bottom-3 left-0 flex w-full justify-center gap-1.5">
-          {Array.from({ length: imageCount }).map((_, i) => (
-            <span key={i} className={`h-1.5 w-1.5 rounded-full ${i === currentImage ? 'bg-black' : 'bg-white/70'}`} />
-          ))}
-        </div>
+      {/* 메인 이미지 */}
+      <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden bg-gray-100">
+        {mainImage && <img src={mainImage} alt={product.name} className="h-full w-full object-cover" />}
+        {stock === 0 && (
+          <span className="text-body-5 absolute rounded-full bg-black/60 px-4 py-2 text-white">품절된 상품입니다</span>
+        )}
       </div>
 
       {/* 기본 정보 */}
@@ -205,6 +183,18 @@ function ProductDetailPage() {
         <h2 className="text-title-5 mb-3 text-black">상품 정보</h2>
         <p className="text-body-8 text-black">{product.description}</p>
       </div>
+
+      {subImages.length > 0 && (
+        <>
+          <div className="h-2 bg-gray-100" />
+          {/* 상세 이미지 */}
+          <div className="flex flex-col">
+            {subImages.map((src, i) => (
+              <img key={src} src={src} alt={`${product.name} 상세 이미지 ${i + 1}`} loading="lazy" className="w-full" />
+            ))}
+          </div>
+        </>
+      )}
 
       <div className="h-2 bg-gray-100" />
 

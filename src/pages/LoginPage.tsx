@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { login as loginRequest } from '@/api/auth'
+import { getMyInfo } from '@/api/user'
 import { useAuthStore } from '@/store/authStore'
 
 function LoginPage() {
@@ -18,8 +19,15 @@ function LoginPage() {
       const { data } = await loginRequest(email, password)
       const { accessToken, user } = data.data
       localStorage.setItem('accessToken', accessToken)
-      // 백엔드 로그인 응답에 아직 이름이 없어 이메일 앞부분으로 임시 구성 (TODO: 응답에 name 추가되면 교체)
-      login({ userId: user.userId, email: user.email, name: user.email.split('@')[0] })
+
+      try {
+        const { data: myInfo } = await getMyInfo()
+        login(myInfo.data)
+      } catch {
+        // 내 정보 조회 실패해도 로그인 자체는 유지, 이름만 이메일 앞부분으로 임시 대체
+        login({ userId: user.userId, email: user.email, name: user.email.split('@')[0] })
+      }
+
       navigate('/')
     } catch {
       setLoginError(true)
