@@ -26,6 +26,9 @@ const STATUS_TITLE: Record<OrderStatus, string> = {
 
 const CANCELABLE_STATUSES: OrderStatus[] = ['PENDING', 'PAID', 'PREPARING', 'DELIVERING']
 
+// 백엔드는 결제 전(PENDING)·취소(CANCELED) 주문만 리뷰 작성을 막고 나머지는 전부 허용한다
+const REVIEWABLE_STATUSES: OrderStatus[] = ['PAID', 'PREPARING', 'DELIVERING', 'DELIVERED']
+
 function OrderManagePage() {
   const navigate = useNavigate()
   const { orderId } = useParams()
@@ -144,7 +147,7 @@ function OrderManagePage() {
                 <p className="text-body-10 text-gray-300">{item.quantity}개</p>
                 <p className="text-body-8 text-black">{item.totalPrice.toLocaleString()}원</p>
               </div>
-              {order.orderStatus === 'DELIVERED' && (
+              {REVIEWABLE_STATUSES.includes(order.orderStatus) && (
                 <button
                   type="button"
                   onClick={() =>
