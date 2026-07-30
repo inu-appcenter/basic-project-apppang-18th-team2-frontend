@@ -45,10 +45,13 @@ function OrderManagePage() {
 
   useEffect(() => {
     if (!orderId || !order) return
-    if (order.orderStatus !== 'DELIVERING' && order.orderStatus !== 'DELIVERED') return
+    if (order.orderStatus !== 'DELIVERING' && order.orderStatus !== 'DELIVERED') {
+      setDelivery(null)
+      return
+    }
     getDelivery(Number(orderId))
       .then(({ data }) => setDelivery(data.data))
-      .catch(() => {})
+      .catch(() => setDelivery(null))
   }, [orderId, order])
 
   const handleCancel = async () => {
