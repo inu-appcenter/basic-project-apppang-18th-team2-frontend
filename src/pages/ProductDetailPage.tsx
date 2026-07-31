@@ -1,3 +1,4 @@
+import { AxiosError } from 'axios'
 import { ArrowLeft, ChevronLeft, ChevronRight, Heart, Minus, Plus, ThumbsUp } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -5,7 +6,7 @@ import { getProduct } from '@/api/product'
 import { deleteReview, getReviews, toggleReviewLike } from '@/api/review'
 import { useCartStore } from '@/store/cartStore'
 import { useWishlistStore } from '@/store/wishlistStore'
-import type { ProductDetailResponse, Review } from '@/types/api'
+import type { ApiResponse, ProductDetailResponse, Review } from '@/types/api'
 
 function ProductDetailPage() {
   const { productId } = useParams()
@@ -79,8 +80,14 @@ function ProductDetailPage() {
 
   const handleAddToCart = async () => {
     if (stock === 0) return
-    await addToCart(product.productId, quantity)
-    setToast('장바구니에 담았습니다')
+    try {
+      await addToCart(product.productId, quantity)
+      setToast('장바구니에 담았습니다')
+    } catch (err) {
+      //장바구니에 이미 담긴 수량과 합산해 재고를 넘으면 서버가 400을 준다 — 그 이유를 그대로 보여준다
+      const message = (err as AxiosError<ApiResponse<unknown>>).response?.data?.message
+      setToast(message ?? '장바구니 담기에 실패했습니다')
+    }
   }
 
   const handleBuyNow = () => {
