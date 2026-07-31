@@ -1,6 +1,6 @@
 import axios from 'axios'
-import { ChevronLeft } from 'lucide-react'
-import { useState } from 'react'
+import { ChevronLeft, Loader2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { findId, requestPasswordReset } from '@/api/auth'
 
@@ -18,10 +18,23 @@ function FindAccountPage() {
   const [foundEmail, setFoundEmail] = useState('')
   const [findError, setFindError] = useState('')
   const [resetSent, setResetSent] = useState(false)
+  const [sending, setSending] = useState(false)
+
+  //이메일을 보낸 뒤, 새 탭에서 재설정이 완료되면 storage 이벤트로 신호를 받아 로그인으로 이동
+  useEffect(() => {
+    if (!resetSent) return
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'passwordResetDone') navigate('/login')
+    }
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  }, [resetSent, navigate])
 
   const canSubmit = tab === 'id' ? name && phone : name && email
 
   const handleSubmit = async () => {
+    if (sending) return
+    setSending(true)
     setFindError('')
     setFoundEmail('')
     setResetSent(false)
@@ -33,6 +46,8 @@ function FindAccountPage() {
       } catch (error) {
         const message = axios.isAxiosError(error) ? error.response?.data?.message : undefined
         setFindError(message ?? '가입된 이메일을 확인해주세요.')
+      } finally {
+        setSending(false)
       }
       return
     }
@@ -43,6 +58,8 @@ function FindAccountPage() {
     } catch (error) {
       const message = axios.isAxiosError(error) ? error.response?.data?.message : undefined
       setFindError(message ?? '입력하신 정보와 일치하는 회원이 없습니다.')
+    } finally {
+      setSending(false)
     }
   }
 
@@ -106,11 +123,12 @@ function FindAccountPage() {
 
         <button
           type="button"
-          disabled={!canSubmit}
+          disabled={!canSubmit || sending}
           onClick={handleSubmit}
-          className={`text-body-5 py-3.5 text-white ${canSubmit ? 'bg-primary-200' : 'bg-gray-200'}`}
+          className={`text-body-5 flex items-center justify-center gap-2 py-3.5 text-white ${canSubmit && !sending ? 'bg-primary-200' : 'bg-gray-200'}`}
         >
-          {tab === 'id' ? '아이디 찾기' : '비밀번호 찾기'}
+          {sending && <Loader2 size={18} className="animate-spin" />}
+          {sending && tab === 'password' ? '이메일 전송 중...' : tab === 'id' ? '아이디 찾기' : '비밀번호 찾기'}
         </button>
 
         {findError && <p className="text-body-10 text-red-300">{findError}</p>}
