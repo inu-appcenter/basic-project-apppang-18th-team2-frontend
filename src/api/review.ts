@@ -17,8 +17,9 @@ export function createReview(payload: CreateReviewRequest) {
   return instance.post<ApiResponse<{ reviewId: number }>>('/api/reviews', payload)
 }
 
-export function updateReview(reviewId: number, rating: number, content: string) {
-  return instance.patch<ApiResponse<void>>(`/api/reviews/${reviewId}`, { rating, content })
+export function updateReview(reviewId: number, rating: number, content: string, imageUrls?: string[]) {
+  //imageUrls는 "수정 후 남아야 할 최종 목록" — 백엔드가 이 목록으로 덮어쓰고, 빠진 파일은 GC 배치가 회수한다
+  return instance.patch<ApiResponse<void>>(`/api/reviews/${reviewId}`, { rating, content, imageUrls })
 }
 
 export function deleteReview(reviewId: number) {
