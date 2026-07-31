@@ -40,6 +40,7 @@ function CheckoutPage() {
   const [addressModalOpen, setAddressModalOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [toast, setToast] = useState('')
   const clearCart = useCartStore((s) => s.clear)
 
   useEffect(() => {
@@ -60,7 +61,13 @@ function CheckoutPage() {
   const total = productPrice + shippingFee
 
   const handlePay = async () => {
-    if (!address || items.length === 0 || submitting) return
+    if (items.length === 0 || submitting) return
+    //배송지가 없으면 버튼을 죽이는 대신, 이유를 알려주고 등록 화면으로 데려간다
+    if (!address) {
+      setToast('배송지를 먼저 등록해주세요')
+      setTimeout(() => navigate('/mypage/settings'), 800)
+      return
+    }
     setSubmitting(true)
     setError('')
     try {
@@ -114,7 +121,13 @@ function CheckoutPage() {
               <p className="text-body-9 text-gray-300">{address.phone}</p>
             </>
           ) : (
-            <p className="text-body-9 text-gray-300">등록된 배송지가 없습니다</p>
+            <button
+              type="button"
+              onClick={() => navigate('/mypage/settings')}
+              className="text-body-7 font-semibold text-primary-200"
+            >
+              등록된 배송지가 없습니다 · 배송지 등록하기 &gt;
+            </button>
           )}
         </section>
 
@@ -182,7 +195,7 @@ function CheckoutPage() {
           <button
             type="button"
             onClick={handlePay}
-            disabled={!address || items.length === 0 || submitting}
+            disabled={items.length === 0 || submitting}
             className="bg-primary-200 text-body-5 flex w-full items-center justify-center gap-2 rounded-lg py-3.5 text-white disabled:bg-gray-200"
           >
             {submitting && <Loader2 size={18} className="animate-spin" />}
@@ -238,6 +251,12 @@ function CheckoutPage() {
                 닫기
               </button>
             </div>
+          </div>
+        )}
+
+        {toast && (
+          <div className="text-body-7 fixed bottom-24 left-1/2 z-50 -translate-x-1/2 rounded-full bg-black/80 px-5 py-2.5 text-white">
+            {toast}
           </div>
         )}
       </div>

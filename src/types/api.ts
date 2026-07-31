@@ -148,6 +148,11 @@ export type OrderDetailResponse = {
     salePrice: number
     quantity: number
     totalPrice: number
+    // 이 주문상세에 작성된 내 리뷰 (없으면 null — 작성↔수정·삭제 버튼 전환용)
+    reviewId: number | null
+    reviewRating: number | null
+    reviewContent: string | null
+    reviewImages: string[]
   }[]
   summary: {
     productPrice: number
@@ -197,6 +202,7 @@ export type Review = {
   createdAt: string
   helpCount: number
   helped: boolean
+  mine: boolean // 로그인 유저가 작성한 리뷰인지 (수정·삭제 버튼 노출용)
 }
 
 export type ReviewListResponse = {

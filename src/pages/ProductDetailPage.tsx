@@ -1,11 +1,12 @@
-import { ArrowLeft, ChevronRight, Heart, Minus, Plus, ThumbsUp } from 'lucide-react'
+import { AxiosError } from 'axios'
+import { ArrowLeft, ChevronLeft, ChevronRight, Heart, Minus, Plus, ThumbsUp } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getProduct } from '@/api/product'
-import { getReviews, toggleReviewLike } from '@/api/review'
+import { deleteReview, getReviews, toggleReviewLike } from '@/api/review'
 import { useCartStore } from '@/store/cartStore'
 import { useWishlistStore } from '@/store/wishlistStore'
-import type { ProductDetailResponse, Review } from '@/types/api'
+import type { ApiResponse, ProductDetailResponse, Review } from '@/types/api'
 
 function ProductDetailPage() {
   const { productId } = useParams()
@@ -21,6 +22,8 @@ function ProductDetailPage() {
   const [reviews, setReviews] = useState<Review[]>([])
   const [showAllReviews, setShowAllReviews] = useState(false)
   const [toast, setToast] = useState('')
+  //리뷰 이미지 확대 보기 (null이면 닫힘)
+  const [viewer, setViewer] = useState<{ images: string[]; index: number } | null>(null)
 
   useEffect(() => {
     setLoading(true)
@@ -77,8 +80,14 @@ function ProductDetailPage() {
 
   const handleAddToCart = async () => {
     if (stock === 0) return
-    await addToCart(product.productId, quantity)
-    setToast('장바구니에 담았습니다')
+    try {
+      await addToCart(product.productId, quantity)
+      setToast('장바구니에 담았습니다')
+    } catch (err) {
+      //장바구니에 이미 담긴 수량과 합산해 재고를 넘으면 서버가 400을 준다 — 그 이유를 그대로 보여준다
+      const message = (err as AxiosError<ApiResponse<unknown>>).response?.data?.message
+      setToast(message ?? '장바구니 담기에 실패했습니다')
+    }
   }
 
   const handleBuyNow = () => {
@@ -97,6 +106,19 @@ function ProductDetailPage() {
         ],
       },
     })
+  }
+
+  //내 리뷰 삭제 — 목록에서 제거하고 상품 평점 통계도 재조회로 갱신
+  const handleDeleteReview = async (reviewId: number) => {
+    if (!window.confirm('리뷰를 삭제하시겠습니까?')) return
+    try {
+      await deleteReview(reviewId)
+      setReviews((prev) => prev.filter((review) => review.reviewId !== reviewId))
+      getProduct(Number(productId)).then(({ data }) => setProduct(data.data))
+      setToast('리뷰가 삭제되었습니다')
+    } catch {
+      setToast('리뷰 삭제에 실패했습니다')
+    }
   }
 
   const toggleHelpful = (reviewId: number) => {
@@ -217,8 +239,49 @@ function ProductDetailPage() {
               <li key={review.reviewId} className="border-b border-gray-100 py-4 last:border-none">
                 <div className="flex items-center justify-between">
                   <p className="text-body-9 text-black">{review.userName}</p>
-                  <p className="text-body-11 text-black">★ {review.rating}</p>
+                  <div className="flex items-center gap-2">
+                    {review.mine && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            navigate('/review/write', {
+                              state: {
+                                mode: 'edit',
+                                reviewId: review.reviewId,
+                                initialRating: review.rating,
+                                initialContent: review.content ?? '',
+                                initialImages: review.images,
+                                productId: product.productId,
+                                productName: product.name,
+                              },
+                            })
+                          }
+                          className="text-body-11 text-gray-300 underline"
+                        >
+                          수정
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteReview(review.reviewId)}
+                          className="text-body-11 text-gray-300 underline"
+                        >
+                          삭제
+                        </button>
+                      </>
+                    )}
+                    <p className="text-body-11 text-black">★ {review.rating}</p>
+                  </div>
                 </div>
+                {review.images.length > 0 && (
+                  <div className="mt-2 flex gap-2">
+                    {review.images.map((url, i) => (
+                      <button key={url} type="button" onClick={() => setViewer({ images: review.images, index: i })} aria-label="리뷰 사진 확대">
+                        <img src={url} alt="리뷰 사진" className="h-20 w-20 rounded-lg border border-gray-100 object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                )}
                 <p className="text-body-8 mt-1.5 text-black">{review.content}</p>
                 <button
                   type="button"
@@ -260,6 +323,48 @@ function ProductDetailPage() {
           구매하기
         </button>
       </div>
+
+      {viewer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85" onClick={() => setViewer(null)}>
+          {viewer.images.length > 1 && (
+            <button
+              type="button"
+              aria-label="이전 이미지"
+              onClick={(e) => {
+                e.stopPropagation()
+                setViewer((v) => v && { ...v, index: (v.index + v.images.length - 1) % v.images.length })
+              }}
+              className="absolute left-3 rounded-full bg-white/15 p-2"
+            >
+              <ChevronLeft size={28} className="text-white" />
+            </button>
+          )}
+          <img
+            src={viewer.images[viewer.index]}
+            alt="리뷰 사진 확대"
+            onClick={(e) => e.stopPropagation()}
+            className="max-h-[80vh] max-w-[88vw] rounded-xl object-contain"
+          />
+          {viewer.images.length > 1 && (
+            <button
+              type="button"
+              aria-label="다음 이미지"
+              onClick={(e) => {
+                e.stopPropagation()
+                setViewer((v) => v && { ...v, index: (v.index + 1) % v.images.length })
+              }}
+              className="absolute right-3 rounded-full bg-white/15 p-2"
+            >
+              <ChevronRight size={28} className="text-white" />
+            </button>
+          )}
+          {viewer.images.length > 1 && (
+            <span className="text-body-9 absolute bottom-6 rounded-full bg-black/60 px-3 py-1 text-white">
+              {viewer.index + 1} / {viewer.images.length}
+            </span>
+          )}
+        </div>
+      )}
 
       {toast && (
         <div className="text-body-9 fixed bottom-32 left-1/2 -translate-x-1/2 rounded-full bg-black/80 px-4 py-2 text-white">

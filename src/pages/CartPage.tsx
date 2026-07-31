@@ -106,7 +106,8 @@ function CartPage() {
                 <div className="flex items-center rounded-full border border-gray-200">
                   <button
                     type="button"
-                    onClick={() => changeQuantity(item.cartItemId, item.quantity - 1).catch(() => {})}
+                    /*재고가 줄어 수량이 재고를 넘어선 경우, 한 번에 재고 수량까지 내려간다 (백엔드가 재고 초과 수량을 거부하므로)*/
+                    onClick={() => changeQuantity(item.cartItemId, Math.max(1, Math.min(item.quantity - 1, item.stock))).catch(() => {})}
                     disabled={item.quantity <= 1}
                     aria-label="수량 감소"
                     className="px-2.5 py-1 text-black disabled:opacity-30"

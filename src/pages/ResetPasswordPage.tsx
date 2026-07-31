@@ -14,6 +14,7 @@ function ResetPasswordPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [done, setDone] = useState(false)
 
   const isMismatch = confirm.length > 0 && password !== confirm
   const canSubmit = password.length >= 8 && confirm.length > 0 && !isMismatch && !!token
@@ -24,7 +25,11 @@ function ResetPasswordPage() {
     setError('')
     try {
       await confirmPasswordReset(token, password)
-      navigate('/login')
+      //원래 탭(재설정을 요청한 화면)에 완료 신호 — 같은 브라우저의 다른 탭에서 storage 이벤트로 감지된다
+      localStorage.setItem('passwordResetDone', String(Date.now()))
+      setDone(true)
+      //이메일 링크로 새로 열린 탭은 스크립트로 닫을 수 있다 — 못 닫는 환경(같은 탭 진입, 모바일 등)이면 완료 화면이 그대로 남는다
+      setTimeout(() => window.close(), 1500)
     } catch (e) {
       const message = axios.isAxiosError(e) ? e.response?.data?.message : undefined
       setError(message ?? '비밀번호 재설정에 실패했습니다. 링크가 만료되었을 수 있어요.')
@@ -42,6 +47,16 @@ function ResetPasswordPage() {
         <h1 className="text-body-3 text-black">비밀번호 재설정</h1>
       </header>
 
+      {done ? (
+        <div className="flex flex-col items-center gap-3 px-4 py-16 text-center">
+          <p className="text-body-3 text-black">비밀번호가 변경되었습니다</p>
+          <p className="text-body-9 text-gray-300">
+            이 탭은 잠시 후 자동으로 닫힙니다. 닫히지 않으면 직접 닫아주세요.
+            <br />
+            재설정을 요청했던 화면에서 새 비밀번호로 로그인해주세요.
+          </p>
+        </div>
+      ) : (
       <div className="flex flex-col gap-2 px-4 py-4">
         <p className="text-body-9 text-gray-300">새로 사용할 비밀번호를 입력해주세요</p>
 
@@ -85,6 +100,7 @@ function ResetPasswordPage() {
           비밀번호 재설정
         </button>
       </div>
+      )}
     </div>
   )
 }

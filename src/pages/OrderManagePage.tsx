@@ -2,6 +2,7 @@ import { ChevronLeft, Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { cancelOrder, getDelivery, getOrderDetail } from '@/api/order'
+import { deleteReview } from '@/api/review'
 import type { DeliveryResponse, OrderDetailResponse, OrderStatus } from '@/types/api'
 
 const steps = ['결제완료', '상품준비', '배송중', '배송완료']
@@ -56,6 +57,18 @@ function OrderManagePage() {
       .then(({ data }) => setDelivery(data.data))
       .catch(() => setDelivery(null))
   }, [orderId, order])
+
+  //작성된 리뷰 삭제 — 성공 시 주문 상세를 재조회해 버튼이 "리뷰 작성"으로 되돌아온다
+  const handleDeleteReview = async (reviewId: number) => {
+    if (!window.confirm('리뷰를 삭제하시겠습니까?')) return
+    try {
+      await deleteReview(reviewId)
+      const { data } = await getOrderDetail(Number(orderId))
+      setOrder(data.data)
+    } catch {
+      window.alert('리뷰 삭제에 실패했습니다. 다시 시도해주세요.')
+    }
+  }
 
   const handleCancel = async () => {
     if (!orderId || canceling) return
@@ -147,19 +160,50 @@ function OrderManagePage() {
                 <p className="text-body-10 text-gray-300">{item.quantity}개</p>
                 <p className="text-body-8 text-black">{item.totalPrice.toLocaleString()}원</p>
               </div>
-              {REVIEWABLE_STATUSES.includes(order.orderStatus) && (
-                <button
-                  type="button"
-                  onClick={() =>
-                    navigate('/review/write', {
-                      state: { orderId: order.orderId, productId: item.productId, productName: item.productName },
-                    })
-                  }
-                  className="text-body-9 h-fit shrink-0 self-center rounded-lg border border-black px-3 py-2 text-black"
-                >
-                  리뷰 작성
-                </button>
-              )}
+              {REVIEWABLE_STATUSES.includes(order.orderStatus) &&
+                (item.reviewId ? (
+                  //이미 리뷰를 쓴 상품: 작성 버튼 대신 수정·삭제
+                  <div className="flex h-fit shrink-0 flex-col gap-1.5 self-center">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        navigate('/review/write', {
+                          state: {
+                            mode: 'edit',
+                            reviewId: item.reviewId,
+                            initialRating: item.reviewRating ?? 4,
+                            initialContent: item.reviewContent ?? '',
+                            initialImages: item.reviewImages ?? [],
+                            productId: item.productId,
+                            productName: item.productName,
+                          },
+                        })
+                      }
+                      className="text-body-9 rounded-lg border border-black px-3 py-2 text-black"
+                    >
+                      리뷰 수정
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteReview(item.reviewId!)}
+                      className="text-body-9 rounded-lg border border-gray-200 px-3 py-2 text-gray-300"
+                    >
+                      리뷰 삭제
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      navigate('/review/write', {
+                        state: { orderId: order.orderId, productId: item.productId, productName: item.productName },
+                      })
+                    }
+                    className="text-body-9 h-fit shrink-0 self-center rounded-lg border border-black px-3 py-2 text-black"
+                  >
+                    리뷰 작성
+                  </button>
+                ))}
             </div>
           ))}
         </section>
