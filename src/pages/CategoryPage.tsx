@@ -27,8 +27,11 @@ function CategoryPage() {
   const startX = useRef(0)
 
   const [items, setItems] = useState<Product[]>([])
+  const [page, setPage] = useState(0)
+  const [hasNext, setHasNext] = useState(false)
   const [loading, setLoading] = useState(false)
   const [failed, setFailed] = useState(false)
+  const sentinelRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     getBanners()
@@ -46,15 +49,49 @@ function CategoryPage() {
 
   const config = CATEGORY_CONFIG[categoryName ?? ''] ?? { title: categoryName ?? '카테고리', params: {} }
 
+  // 카테고리가 바뀌면 목록을 처음부터 새로 조회한다
   useEffect(() => {
     setLoading(true)
     setFailed(false)
+    setItems([])
+    setPage(0)
     getProducts({ page: 0, ...config.params })
-      .then(({ data }) => setItems(data.data.products))
+      .then(({ data }) => {
+        setItems(data.data.products)
+        setHasNext(data.data.hasNext)
+      })
       .catch(() => setFailed(true))
       .finally(() => setLoading(false))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categoryName])
+
+  // 목록 맨 아래 센티널이 보이면 다음 페이지를 이어 붙인다 (무한 스크롤)
+  useEffect(() => {
+    const target = sentinelRef.current
+    if (!hasNext || loading || !target) return undefined
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return
+      const nextPage = page + 1
+      setLoading(true)
+      getProducts({ page: nextPage, ...config.params })
+        .then(({ data }) => {
+          //페이지 경계 동점 등으로 같은 상품이 다시 내려와도 중복 표시되지 않게 걸러서 이어 붙인다
+          setItems((prev) => {
+            const seen = new Set(prev.map((p) => p.productId))
+            return [...prev, ...data.data.products.filter((p) => !seen.has(p.productId))]
+          })
+          setPage(nextPage)
+          setHasNext(data.data.hasNext)
+        })
+        .catch(() => setFailed(true))
+        .finally(() => setLoading(false))
+    })
+    observer.observe(target)
+
+    return () => observer.disconnect()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasNext, loading, page, categoryName])
 
   const handleTouchStart = (e: React.TouchEvent) => {
     startX.current = e.touches[0].clientX
@@ -98,7 +135,7 @@ function CategoryPage() {
         </div>
       )}
 
-      {loading ? (
+      {loading && items.length === 0 ? (
         <div className="flex items-center justify-center py-24">
           <Loader2 size={20} className="animate-spin text-gray-300" />
         </div>
@@ -107,7 +144,8 @@ function CategoryPage() {
           {failed ? '상품을 불러오지 못했습니다' : '등록된 상품이 없습니다'}
         </p>
       ) : (
-        <div className="grid grid-cols-2 gap-x-3 gap-y-5 px-4 py-5">
+        <>
+          <div className="grid grid-cols-2 gap-x-3 gap-y-5 px-4 py-5">
           {items.map((item) => (
             <button key={item.productId} type="button" onClick={() => navigate(`/products/${item.productId}`)} className="text-left">
               <div className={`relative aspect-square w-full overflow-hidden rounded-xl ${item.productId % 2 === 0 ? 'bg-primary-100' : 'bg-secondary-100'}`}>
@@ -130,7 +168,15 @@ function CategoryPage() {
               </p>
             </button>
           ))}
-        </div>
+          </div>
+
+          <div ref={sentinelRef} className="flex items-center justify-center py-6">
+            {loading && <Loader2 size={20} className="animate-spin text-gray-300" />}
+            {!hasNext && !loading && items.length > 0 && (
+              <span className="text-body-9 text-gray-300">마지막 상품입니다</span>
+            )}
+          </div>
+        </>
       )}
     </div>
   )
