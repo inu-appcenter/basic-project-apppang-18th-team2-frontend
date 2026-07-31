@@ -1,19 +1,25 @@
 import { Search, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getAutocomplete } from '@/api/search'
+import { getAutocomplete, getPopular } from '@/api/search'
 import { useSearchStore } from '@/store/searchStore'
-
-const popularKeywords = ['겨울 패딩', '무선 이어폰', '가습기', '운동화', '캠핑 의자', '원피스', '키보드', '핸드크림']
 
 function SearchPage() {
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
+  const [popular, setPopular] = useState<string[]>([])
   const recent = useSearchStore((state) => state.recent)
   const addRecent = useSearchStore((state) => state.addRecent)
   const removeRecent = useSearchStore((state) => state.removeRecent)
   const clearRecent = useSearchStore((state) => state.clearRecent)
   const [suggestions, setSuggestions] = useState<string[]>([])
+
+  // 진입 시 실제 검색 집계 기반 인기 검색어 조회 (Redis ZSET 순위)
+  useEffect(() => {
+    getPopular()
+      .then(({ data }) => setPopular(data.data))
+      .catch(() => setPopular([]))
+  }, [])
 
   useEffect(() => {
     if (!query.trim()) {
@@ -97,9 +103,10 @@ function SearchPage() {
               )}
             </div>
             {recent.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
+              // 줄바꿈 대신 한 줄 가로 슬라이드 — 개수가 늘어도 세로 공간을 차지하지 않는다 (스크롤바는 숨김)
+              <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                 {recent.map((word) => (
-                  <div key={word} className="flex items-center gap-1.5 rounded-full border border-gray-200 py-1.5 pr-2 pl-3">
+                  <div key={word} className="flex shrink-0 items-center gap-1.5 rounded-full border border-gray-200 py-1.5 pr-2 pl-3 whitespace-nowrap">
                     <button type="button" onClick={() => search(word)} className="text-body-8 text-black">
                       {word}
                     </button>
@@ -119,16 +126,20 @@ function SearchPage() {
           {/* 인기 검색어 */}
           <section className="px-4 py-5">
             <h2 className="text-body-5 mb-3 text-black">인기 검색어</h2>
-            <ol>
-              {popularKeywords.map((word, i) => (
-                <li key={word}>
-                  <button type="button" onClick={() => search(word)} className="flex w-full items-center gap-3 py-2.5 text-left">
-                    <span className={`text-body-7 w-5 ${i < 3 ? 'text-primary-200' : 'text-gray-300'}`}>{i + 1}</span>
-                    <span className="text-body-7 text-black">{word}</span>
-                  </button>
-                </li>
-              ))}
-            </ol>
+            {popular.length === 0 ? (
+              <p className="text-body-9 py-6 text-center text-gray-300">아직 인기 검색어가 없습니다</p>
+            ) : (
+              <ol>
+                {popular.map((word, i) => (
+                  <li key={word}>
+                    <button type="button" onClick={() => search(word)} className="flex w-full items-center gap-3 py-2.5 text-left">
+                      <span className={`text-body-7 w-5 ${i < 3 ? 'text-primary-200' : 'text-gray-300'}`}>{i + 1}</span>
+                      <span className="text-body-7 text-black">{word}</span>
+                    </button>
+                  </li>
+                ))}
+              </ol>
+            )}
           </section>
         </>
       )}
